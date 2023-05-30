@@ -1,0 +1,6 @@
+"""
+"""
+
+
+class UnsupportedInterfaceError(Exception):
+    pass
