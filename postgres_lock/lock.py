@@ -45,7 +45,7 @@ class Lock:
 
     conn: Any
     interface: str
-    key: str
+    key: str | int
     lock_id: int
     scope: str
     shared: bool
@@ -57,7 +57,7 @@ class Lock:
     def __init__(
         self,
         conn: Any,
-        key: str,
+        key: str | int,
         interface: Literal[
             "auto",
             "asyncpg",
@@ -73,7 +73,7 @@ class Lock:
 
         Parameters:
             conn (object): Database connection.
-            key (str): Unique lock key.
+            key (str|int): Unique lock key.
             interface (str): Database interface.
             scope (str): Lock scope.
             shared (bool): Use a shared lock.
@@ -82,7 +82,9 @@ class Lock:
         self.interface = interface
         self.impl = self._load_impl()
         self.key = key
-        self.lock_id = str(int(hashlib.sha1(key.encode("utf-8")).hexdigest(), 16))[:18]
+        self.lock_id = str(int(hashlib.sha1(str(key).encode("utf-8")).hexdigest(), 16))[
+            :18
+        ]
         self.scope = scope
         self._locked = False
         self._ref_count = 0

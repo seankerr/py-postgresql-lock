@@ -20,8 +20,10 @@ def test___init___defaults(_load_impl, hashlib, int, str):
     key = Mock()
     lock = Lock(conn, key)
 
-    key.encode.assert_called_with("utf-8")
-    hashlib.sha1.assert_called_with(key.encode())
+    assert str.call_args_list[0][0][0] == key
+
+    str().encode.assert_called_with("utf-8")
+    hashlib.sha1.assert_called_with(str().encode())
     hashlib.sha1().hexdigest.assert_called_once()
     int.assert_called_with(hashlib.sha1().hexdigest(), 16)
 
