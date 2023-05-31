@@ -7,7 +7,7 @@ Easily implement distributed database locking.
 ### Install
 
 ```sh
-python3 -m pip install postgres_lock
+pip install postgres-lock
 ```
 
 ### Supported database interfaces
