@@ -2,7 +2,7 @@
 
 Lock mechanism implemented with Postgres advisory locks.
 
-Easily implement distributed database locking using default settings.
+Easily implement distributed database locking.
 
 ### Supported database interfaces
 
