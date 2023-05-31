@@ -117,11 +117,11 @@ def test_acquire__locked_not_shared(_load_impl):
     lock = Lock(None, key)
     lock.acquire()
 
-    with raises(errors.AcquireError) as ex:
+    with raises(errors.AcquireError) as exc:
         lock.acquire()
 
     assert (
-        str(ex.value)
+        str(exc.value)
         == f"Lock for '{lock.key}' is already held by this {lock.scope} scope"
     )
 
@@ -166,11 +166,11 @@ async def test_acquire_async__locked_not_shared(_load_impl):
 
     await lock.acquire_async()
 
-    with raises(errors.AcquireError) as ex:
+    with raises(errors.AcquireError) as exc:
         await lock.acquire_async()
 
     assert (
-        str(ex.value)
+        str(exc.value)
         == f"Lock for '{lock.key}' is already held by this {lock.scope} scope"
     )
 
@@ -186,6 +186,20 @@ def test_context_manager(_load_impl):
     lock.impl.release.assert_called_with(lock)
 
 
+@patch(f"{PATH}.Lock._load_impl")
+def test_context_manager__raises_exception(_load_impl):
+    lock = Lock(None, "key")
+
+    with raises(Exception) as exc:
+        with lock:
+            raise Exception("Inner exception")
+
+    assert str(exc.value) == "Inner exception"
+
+    lock.impl.acquire.assert_called_with(lock, block=True)
+    lock.impl.release.assert_called_with(lock)
+
+
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
 async def test_context_manager_async(_load_impl):
@@ -195,6 +209,23 @@ async def test_context_manager_async(_load_impl):
 
     async with lock:
         pass
+
+    lock.impl.acquire_async.assert_called_with(lock, block=True)
+    lock.impl.release_async.assert_called_with(lock)
+
+
+@mark.asyncio
+@patch(f"{PATH}.Lock._load_impl")
+async def test_context_manager_async__raises_exception(_load_impl):
+    lock = Lock(None, "key")
+    lock.impl.acquire_async = AsyncMock()
+    lock.impl.release_async = AsyncMock()
+
+    with raises(Exception) as exc:
+        async with lock:
+            raise Exception("Inner exception")
+
+    assert str(exc.value) == "Inner exception"
 
     lock.impl.acquire_async.assert_called_with(lock, block=True)
     lock.impl.release_async.assert_called_with(lock)
@@ -252,12 +283,12 @@ def test_release__not_released(_load_impl):
     lock._ref_count = 1
     lock.impl.release.return_value = False
 
-    with raises(errors.ReleaseError) as ex:
+    with raises(errors.ReleaseError) as exc:
         lock.release()
 
     assert lock._ref_count == 1
     assert (
-        str(ex.value)
+        str(exc.value)
         == f"Lock for '{lock.key}' was not held by this {lock.scope} scope"
     )
 
@@ -294,12 +325,12 @@ async def test_release_async__not_released(_load_impl):
     lock._ref_count = 1
     lock.impl.release_async = AsyncMock(return_value=False)
 
-    with raises(errors.ReleaseError) as ex:
+    with raises(errors.ReleaseError) as exc:
         await lock.release_async()
 
     assert lock._ref_count == 1
     assert (
-        str(ex.value)
+        str(exc.value)
         == f"Lock for '{lock.key}' was not held by this {lock.scope} scope"
     )
 
