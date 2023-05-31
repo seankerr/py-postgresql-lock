@@ -38,10 +38,9 @@ means only a single database connection can acquire the lock at a time.
 
 ### Usage
 
-All work revolves around the `Lock` class which holds the database connection, lock key, and
-specifies the interface your connection is using.
+All work revolves around the `Lock` class.
 
-The easiest way to use `Lock` is with python's `with` or `async with` statements. The lock will be
+The easiest way to use `Lock` is with `with` or `async with` statements. The lock will be
 released automatically.
 
 _Using `with` and `async with` implies blocking mode._
@@ -127,6 +126,6 @@ try:
         print("Could not acquire lock!")
 
 finally:
-    # release lock
+    # release lock (this is safe to run even if the lock has not been acquired)
     lock.release()
 ```
