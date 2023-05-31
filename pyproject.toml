@@ -5,6 +5,8 @@ description = "Lock mechanism implemented with Postgres advisory locks."
 license = "BSD-3-Clause"
 authors = ["Sean Kerr <sean@code-box.org>"]
 readme = "README.md"
+repository = "https://github.com/seankerr/py-postgres-lock"
+keywords = ["postgres", "postgresql", "distributed", "lock"]
 packages = [{include = "postgres_lock"}]
 
 [tool.poetry.dependencies]
