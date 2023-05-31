@@ -6,14 +6,14 @@ Easily implement distributed database locking using default settings.
 
 ### Supported database interfaces
 
-- asyncpg
+- **asyncpg**
   - asynchronous
-- psycopg2
+- **psycopg2**
   - synchronous
-- psycopg3
+- **psycopg3**
   - asynchronous
   - synchronous
-- sqlalchemy 1 & 2 (can use any underlying database interface)
+- **sqlalchemy** (supports version 1 & 2; can use any underlying database interface)
   - asynchronous
   - synchronous
 
@@ -128,4 +128,19 @@ try:
 finally:
     # release lock (this is safe to run even if the lock has not been acquired)
     lock.release()
+```
+
+### Specify the database interface manually
+
+```python
+from postgres_lock import Lock
+
+# setup connection
+conn = ...
+
+# create and use lock
+with Lock(conn, "shared-identifier", interface="asyncpg"):
+    print("Acquired lock!")
+
+    # do something here
 ```
