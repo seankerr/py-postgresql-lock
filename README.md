@@ -29,6 +29,7 @@ Easily implement distributed database locking using default settings.
 - Postgres table locks aren't sufficient for your use-case
 - Postgres row locks don't work on `INSERT`
 - You want to prevent race conditions between `INSERT` and `UPDATE` on the same primary key
+- None of the aforementioned details fit your use-case, but you have Postgres installed and need to prevent race conditions in a distributed system
 
 ### Default operation
 
