@@ -97,7 +97,7 @@ finally:
     await lock.release_async()
 ```
 
-### Non-blocking mode (works with async functions as well)
+### Non-blocking mode (supports async as well)
 
 ```python
 from postgres_lock import Lock
