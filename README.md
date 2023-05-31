@@ -143,3 +143,8 @@ with Lock(conn, "shared-identifier", interface="asyncpg"):
 
     # do something here
 ```
+
+### Changelog
+
+- **0.1.1**
+  - Key can be str or int
