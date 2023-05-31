@@ -4,6 +4,12 @@ Lock mechanism implemented with Postgres advisory locks.
 
 Easily implement distributed database locking.
 
+### Install
+
+```sh
+python3 -m pip install postgres_lock
+```
+
 ### Supported database interfaces
 
 - **asyncpg**
