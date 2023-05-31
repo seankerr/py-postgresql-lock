@@ -17,13 +17,6 @@ Easily implement distributed database locking.
   - asynchronous
   - synchronous
 
-### Scopes, modes, & connections
-
-- `session` and `transaction` lock scopes
-- `blocking` and `nonblocking` modes
-- `synchronous` and `asynchronous` connections
-- `shared` locks
-
 ### Why would I use this?
 
 - Postgres table locks aren't sufficient for your use-case
