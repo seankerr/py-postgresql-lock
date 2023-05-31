@@ -70,7 +70,7 @@ try:
 
     # do something here
 finally:
-    # release lock
+    # release lock (this is safe to run even if the lock has not been acquired)
     lock.release()
 ```
 
@@ -93,11 +93,11 @@ try:
 
     # do something here
 finally:
-    # release lock
+    # release lock (this is safe to run even if the lock has not been acquired)
     await lock.release_async()
 ```
 
-### Non-blocking mode
+### Non-blocking mode (works with async functions as well)
 
 ```python
 from postgres_lock import Lock
