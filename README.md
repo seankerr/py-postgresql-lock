@@ -1,15 +1,15 @@
-### postgres-lock
+## postgres-lock
 
 Lock mechanism implemented with Postgres advisory locks.
 
-#### Scopes, modes, & connections
+### Scopes, modes, & connections
 
 - `session` and `transaction` lock scopes
 - `blocking` and `nonblocking` modes
 - `synchronous` and `asynchronous` connections
 - `shared` locks
 
-#### Database interfaces
+### Database interfaces
 
 - asyncpg
   - asynchronous
@@ -22,18 +22,18 @@ Lock mechanism implemented with Postgres advisory locks.
   - asynchronous
   - synchronous
 
-#### Why would I use this?
+### Why would I use this?
 
 - Postgres table locks aren't sufficient for your use-case
 - Postgres row locks don't work on `INSERT`
 - You want to prevent race conditions between `INSERT` and `UPDATE` on the same primary key
 
-#### Default operation
+### Default operation
 
-By default `postgres-lock` will use `session` scope in `blocking` mode. The `session` lock scope
+By default `postgres-lock` will use `session` lock scope in `blocking` mode. The `session` lock scope
 means only a single database connection can acquire the lock at a time.
 
-#### Usage
+### Usage
 
 All work revolves around the `Lock` class which holds the database connection, lock key, and
 specifies the interface your connection is using.
@@ -79,7 +79,7 @@ finally:
     lock.release()
 ```
 
-#### Asynchronous usage (without `async with`)
+### Asynchronous usage (without `async with`)
 
 ```python
 from postgres_lock import Lock
@@ -102,7 +102,7 @@ finally:
     await lock.release_async()
 ```
 
-#### Non-blocking mode
+### Non-blocking mode
 
 ```python
 from postgres_lock import Lock
@@ -119,6 +119,9 @@ try:
         print("Acquired lock!")
 
         # do something here
+
+    else:
+        print("Could not acquire lock!")
 
 finally:
     # release lock

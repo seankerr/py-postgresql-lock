@@ -1,5 +1,5 @@
 """
-Lock support for psycopg2.
+Lock support for sqlalchemy.
 """
 
 from .lock import Lock
@@ -21,9 +21,9 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     if not block:
         lock_func = lock.nonblocking_lock_func
 
-    cursor = lock.conn.cursor()
-    cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
-    result, *_ = cursor.fetchone()
+    result = lock.conn.execute(
+        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+    ).scalar()
 
     # lock function returns True/False in unblocking mode, and always None in blocking mode
     return False if result is False else True
@@ -31,16 +31,26 @@ def acquire(lock: Lock, block: bool = True) -> bool:
 
 async def acquire_async(lock: Lock, block: bool = True) -> bool:
     """
-    This function is not implemented.
+    Acquire the lock asynchronously.
 
     Parameters:
         lock (Lock): Lock.
         block (bool): Return only once the lock has been acquired.
 
-    Raises:
-        NotImplementedError: This function is not implemented.
+    Returns:
+        bool: True, if the lock was acquired, otherwise False.
     """
-    raise NotImplementedError("psycopg2 interface does not support acquire_async()")
+    lock_func = lock.blocking_lock_func
+
+    if not block:
+        lock_func = lock.nonblocking_lock_func
+
+    result = (
+        await lock.conn.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    ).scalar()
+
+    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    return False if result is False else True
 
 
 def release(lock: Lock) -> bool:
@@ -53,21 +63,21 @@ def release(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    cursor = lock.conn.cursor()
-    cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
-    result, *_ = cursor.fetchone()
-
-    return result
+    return lock.conn.execute(
+        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+    ).scalar()
 
 
-async def release_async(lock: Lock) -> None:
+async def release_async(lock: Lock) -> bool:
     """
-    This function is not implemented.
+    Release the lock asynchronously.
 
     Parameters:
         lock (Lock): Lock.
 
-    Raises:
-        NotImplementedError: This function is not implemented.
+    Returns:
+        bool: True, if the lock was released, otherwise False.
     """
-    raise NotImplementedError("psycopg2 interface does not support release_async()")
+    return (
+        await lock.conn.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
+    ).scalar(0)

@@ -1,4 +1,5 @@
 """
+Lock mechanism implemented with Postgres advisory locks.
 """
 
 from importlib import import_module
@@ -12,6 +13,8 @@ from typing import Optional
 from typing import Type
 
 import hashlib
+
+from . import errors
 
 
 class Lock:
@@ -33,7 +36,11 @@ class Lock:
         conn: Any,
         key: str,
         interface: Literal[
-            "auto", "asyncpg", "psycopg2", "psycopg3", "sqlalchemy"
+            "auto",
+            "asyncpg",
+            "psycopg2",
+            "psycopg3",
+            "sqlalchemy",
         ] = "auto",
         scope: Literal["session", "transaction"] = "session",
         shared: bool = False,
@@ -44,6 +51,7 @@ class Lock:
         Parameters:
             conn (object): Database connection.
             key (str): Unique lock key.
+            interface (str): Database interface.
             scope (str): Lock scope.
             shared (bool): Use a shared lock.
         """
@@ -104,23 +112,45 @@ class Lock:
         """
         return self._locked
 
-    def release(self) -> None:
+    def release(self) -> bool:
         """
         Release the lock.
+
+        Raises:
+            errors.LockReleaseError: An attempt to release the lock failed.
+
+        Returns:
+            bool: True, if the lock was released, otherwise False.
         """
-        if self._locked:
-            self.impl.release(self)
+        if not self._locked:
+            return False
 
-            self._locked = False
+        if not self.impl.release(self):
+            raise errors.LockReleaseError()
 
-    async def release_async(self) -> None:
+        self._locked = False
+
+        return True
+
+    async def release_async(self) -> bool:
         """
         Release the lock asynchronously.
-        """
-        if self._locked:
-            await self.impl.release_async(self)
 
-            self._locked = False
+        Raises:
+            errors.LockReleaseError: An attempt to release the lock failed.
+
+        Returns:
+            bool: True, if the lock was released, otherwise False.
+        """
+        if not self._locked:
+            return False
+
+        if not await self.impl.release_async(self):
+            raise errors.LockReleaseError()
+
+        self._locked = False
+
+        return True
 
     async def __aenter__(self) -> bool:
         """
@@ -131,6 +161,9 @@ class Lock:
     def _load_impl(self) -> ModuleType:
         """
         Load the implementation.
+
+        Raises:
+            errors.UnsupportedInterfaceError: The database interface is unsupported.
         """
         module = self.conn.__class__.__module__
         interface = self.interface
@@ -149,10 +182,10 @@ class Lock:
                 interface = "sqlalchemy"
 
             else:
-                interface = "unknown"
-
-        if interface == "unknown":
-            raise ValueError("Cannot determine database interface type for connection")
+                raise errors.UnsupportedInterfaceError(
+                    "Cannot determine database interface, "
+                    + "try specifying it with the interface keyword"
+                )
 
         self.interface = interface
 
@@ -160,7 +193,9 @@ class Lock:
             return import_module(f".{interface}", package="postgres_lock")
 
         except ModuleNotFoundError:
-            raise ValueError(f"Database interface module '{interface}' not installed")
+            raise errors.UnsupportedInterfaceError(
+                f"Unsupported database interface '{interface}' or python module not installed"
+            )
 
     async def __aexit__(
         self,
@@ -176,10 +211,10 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Exception traceback.
         """
+        await self.impl.release_async(self)
+
         if exc:
             raise exc
-
-        await self.impl.release_async(self)
 
     def __enter__(self) -> bool:
         """
@@ -201,7 +236,7 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Exception traceback.
         """
+        self.impl.release(self)
+
         if exc:
             raise exc
-
-        self.impl.release(self)
