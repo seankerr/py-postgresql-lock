@@ -28,13 +28,13 @@ class Lock:
         - psycopg3
             - asynchronous
             - synchronous
-        - sqlalchemy 1 & 2 (can use any underlying database interface)
+        - sqlalchemy (supports version 1 & 2; can use any underlying database interface)
             - asynchronous
             - synchronous
 
     Lock scopes:
         - session: only a single session can hold the lock
-        - transaction: only a single transaction can hold the lock
+        - transaction: only a single transaction within a single session can hold the lock
 
     Modes:
         - blocked: do not return until the lock is acquired

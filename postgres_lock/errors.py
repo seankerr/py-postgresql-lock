@@ -1,5 +1,5 @@
 class AcquireError(Exception):
-    """An attempt to re-acquire a non-shared lock failed."""
+    """An attempt to reacquire a non-shared lock failed."""
 
     pass
 
