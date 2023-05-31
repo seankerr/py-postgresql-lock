@@ -1,5 +1,5 @@
 """
-Lock support for psycopg2.
+Lock support for psycopg2 database interface.
 """
 
 from .lock import Lock

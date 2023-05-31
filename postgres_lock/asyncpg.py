@@ -1,5 +1,5 @@
 """
-Lock support for asyncpg.
+Lock support for asyncpg database interface.
 """
 
 from .lock import Lock

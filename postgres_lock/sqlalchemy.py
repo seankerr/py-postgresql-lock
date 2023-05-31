@@ -1,5 +1,5 @@
 """
-Lock support for sqlalchemy.
+Lock support for sqlalchemy database interface.
 """
 
 from .lock import Lock

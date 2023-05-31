@@ -1,14 +1,16 @@
-"""
-"""
+class AcquireError(Exception):
+    """An attempt to re-acquire a non-shared lock failed."""
+
+    pass
 
 
-class LockReleaseError(Exception):
-    """ """
+class ReleaseError(Exception):
+    """An attempt to release a lock failed due to the current scope not holding it."""
 
     pass
 
 
 class UnsupportedInterfaceError(Exception):
-    """ """
+    """Database interface specified or detected is unsupported."""
 
     pass

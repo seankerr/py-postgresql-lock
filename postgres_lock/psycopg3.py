@@ -1,5 +1,5 @@
 """
-Lock support for psycopg3.
+Lock support for psycopg3 database interface.
 """
 
 from .lock import Lock

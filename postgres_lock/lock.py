@@ -1,7 +1,3 @@
-"""
-Lock mechanism implemented with Postgres advisory locks.
-"""
-
 from importlib import import_module
 
 from types import ModuleType
@@ -18,7 +14,34 @@ from . import errors
 
 
 class Lock:
-    """ """
+    """
+    Lock mechanism implemented with Postgres advisory locks.
+
+    Default operation is session lock scope and blocking mode and is sufficient for distributed
+    locks. The database interface will be detected automatically.
+
+    Database interfaces:
+        - asyncpg
+            - asynchronous
+        - psycopg2
+            - synchronous
+        - psycopg3
+            - asynchronous
+            - synchronous
+        - sqlalchemy (can use any underlying database interface)
+            - asynchronous
+            - synchronous
+
+    Lock scopes:
+        - session: only a single session can hold the lock
+        - transaction: only a single transaction can hold the lock
+
+    Modes:
+        - blocked: do not return until the lock is acquired
+        - nonblocking: return immediately with or without the lock being acquired
+
+    Sharing (locks can or cannot be reacquired from the same scope)
+    """
 
     conn: Any
     interface: str
@@ -46,7 +69,7 @@ class Lock:
         shared: bool = False,
     ):
         """
-        Create a new `Lock` instance.
+        Create a new Lock instance.
 
         Parameters:
             conn (object): Database connection.
@@ -61,8 +84,9 @@ class Lock:
         self.key = key
         self.lock_id = str(int(hashlib.sha1(key.encode("utf-8")).hexdigest(), 16))[:18]
         self.scope = scope
-        self.shared = shared
         self._locked = False
+        self._ref_count = 0
+        self._shared = shared
 
         infix = "_xact"
         suffix = ""
@@ -87,7 +111,13 @@ class Lock:
         Returns:
             bool: True, if the lock was acquired, otherwise False.
         """
+        if self._locked and not self._shared:
+            raise errors.AcquireError(
+                f"Lock for '{self.key}' is already held by this {self.scope} scope"
+            )
+
         self._locked = self.impl.acquire(self, block=block)
+        self._ref_count += 1
 
         return self._locked
 
@@ -101,7 +131,13 @@ class Lock:
         Returns:
             bool: True, if the lock was acquired, otherwise False.
         """
+        if self._locked and not self._shared:
+            raise errors.AcquireError(
+                f"Lock for '{self.key}' is already held by this {self.scope} scope"
+            )
+
         self._locked = await self.impl.acquire_async(self, block=block)
+        self._ref_count += 1
 
         return self._locked
 
@@ -109,15 +145,31 @@ class Lock:
     def locked(self) -> bool:
         """
         Returns the lock status.
+
+        Returns:
+            bool: Locked status.
         """
         return self._locked
+
+    @property
+    def ref_count(self) -> int:
+        """
+        Returns the reference count.
+
+        Returns:
+            int: Reference count.
+        """
+        return self._ref_count
 
     def release(self) -> bool:
         """
         Release the lock.
 
+        When using shared locks, all references to the lock within the current scope must be
+        released before this method will return True.
+
         Raises:
-            errors.LockReleaseError: An attempt to release the lock failed.
+            errors.ReleaseError: An attempt to release the lock failed.
 
         Returns:
             bool: True, if the lock was released, otherwise False.
@@ -126,18 +178,24 @@ class Lock:
             return False
 
         if not self.impl.release(self):
-            raise errors.LockReleaseError()
+            raise errors.ReleaseError(
+                f"Lock for '{self.key}' was not held by this {self.scope} scope"
+            )
 
-        self._locked = False
+        self._ref_count -= 1
+        self._locked = self._ref_count > 0
 
-        return True
+        return not self._locked
 
     async def release_async(self) -> bool:
         """
         Release the lock asynchronously.
 
+        When using shared locks, all references to the lock within the current scope must be
+        released before this method will return True.
+
         Raises:
-            errors.LockReleaseError: An attempt to release the lock failed.
+            errors.ReleaseError: An attempt to release the lock failed.
 
         Returns:
             bool: True, if the lock was released, otherwise False.
@@ -146,11 +204,24 @@ class Lock:
             return False
 
         if not await self.impl.release_async(self):
-            raise errors.LockReleaseError()
+            raise errors.ReleaseError(
+                f"Lock for '{self.key}' was not held by this {self.scope} scope"
+            )
 
-        self._locked = False
+        self._ref_count -= 1
+        self._locked = self._ref_count > 0
 
-        return True
+        return not self._locked
+
+    @property
+    def shared(self) -> bool:
+        """
+        Returns the shared status.
+
+        Returns:
+            bool: Shared status.
+        """
+        return self._shared
 
     async def __aenter__(self) -> bool:
         """
@@ -194,7 +265,7 @@ class Lock:
 
         except ModuleNotFoundError:
             raise errors.UnsupportedInterfaceError(
-                f"Unsupported database interface '{interface}' or python module not installed"
+                f"Unsupported database interface '{interface}'"
             )
 
     async def __aexit__(
@@ -209,7 +280,7 @@ class Lock:
         Parameters:
             Exception type (Type[BaseException]): Type of exception that was raised.
             Exception (BaseException): Exception that was raised.
-            Traceback (TracebackType): Exception traceback.
+            Traceback (TracebackType): Traceback.
         """
         await self.impl.release_async(self)
 
@@ -234,7 +305,7 @@ class Lock:
         Parameters:
             Exception type (Type[BaseException]): Type of exception that was raised.
             Exception (BaseException): Exception that was raised.
-            Traceback (TracebackType): Exception traceback.
+            Traceback (TracebackType): Traceback.
         """
         self.impl.release(self)
 
