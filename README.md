@@ -2,14 +2,9 @@
 
 Lock mechanism implemented with Postgres advisory locks.
 
-### Scopes, modes, & connections
+Easily implement distributed database locking using default settings.
 
-- `session` and `transaction` lock scopes
-- `blocking` and `nonblocking` modes
-- `synchronous` and `asynchronous` connections
-- `shared` locks
-
-### Database interfaces
+### Supported database interfaces
 
 - asyncpg
   - asynchronous
@@ -21,6 +16,13 @@ Lock mechanism implemented with Postgres advisory locks.
 - sqlalchemy 1 & 2 (can use any underlying database interface)
   - asynchronous
   - synchronous
+
+### Scopes, modes, & connections
+
+- `session` and `transaction` lock scopes
+- `blocking` and `nonblocking` modes
+- `synchronous` and `asynchronous` connections
+- `shared` locks
 
 ### Why would I use this?
 
