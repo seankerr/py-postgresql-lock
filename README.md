@@ -18,7 +18,7 @@ Lock mechanism implemented with Postgres advisory locks.
 - psycopg3
   - asynchronous
   - synchronous
-- sqlalchemy (can use any underlying database interface)
+- sqlalchemy 1 & 2 (can use any underlying database interface)
   - asynchronous
   - synchronous
 
