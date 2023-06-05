@@ -32,15 +32,17 @@ pip install postgres-lock
 
 ### Default operation
 
-By default `postgres-lock` will use `session` lock scope in `blocking` mode. The `session` lock scope
-means only a single database connection can acquire the lock at a time.
+By default `postgres-lock` will use `session` lock scope in `blocking` mode with
+`rollback_on_error` enabled. The `session` lock scope means only a single database connection can
+acquire the lock at a time.
 
 ### Usage
 
 All work revolves around the `Lock` class.
 
 The easiest way to use `Lock` is with `with` or `async with` statements. The lock will be
-released automatically.
+released automatically. If `rollback_on_error` is enabled (default), rollbacks are automatically
+handled prior to release.
 
 _Using `with` and `async with` implies blocking mode._
 
@@ -74,7 +76,15 @@ try:
 
     print("Acquired lock!")
 
-    # do something here
+    try:
+        # do something here
+        pass
+
+    except Exception as exc:
+        # handle_error() will rollback the transaction by default
+        lock.handle_error(exc)
+
+        raise exc
 finally:
     # release lock (this is safe to run even if the lock has not been acquired)
     lock.release()
@@ -97,7 +107,15 @@ try:
 
     print("Acquired lock!")
 
-    # do something here
+    try:
+        # do something here
+        pass
+
+    except Exception as exc:
+        # handle_error_async() will rollback the transaction by default
+        await lock.handle_error_async(exc)
+
+        raise exc
 finally:
     # release lock (this is safe to run even if the lock has not been acquired)
     await lock.release_async()
@@ -114,19 +132,17 @@ conn = ...
 # create lock
 lock = Lock(conn, "shared-identifier")
 
-try:
-    # acquire lock
-    if lock.acquire(block=False):
-        print("Acquired lock!")
+# acquire lock
+if lock.acquire(block=False):
+    # do something here
+    pass
 
-        # do something here
+else:
+    # could not acquire lock
+    pass
 
-    else:
-        print("Could not acquire lock!")
-
-finally:
-    # release lock (this is safe to run even if the lock has not been acquired)
-    lock.release()
+# release lock (this is safe to run even if the lock has not been acquired)
+lock.release()
 ```
 
 ### Specify the database interface manually
@@ -138,13 +154,29 @@ from postgres_lock import Lock
 conn = ...
 
 # create and use lock
-with Lock(conn, "shared-identifier", interface="asyncpg"):
-    print("Acquired lock!")
+lock = Lock(conn, "shared-identifier", interface="asyncpg")
 
-    # do something here
+# do things with the lock
+```
+
+### Handle rollbacks manually
+
+```python
+from postgres_lock import Lock
+
+# setup connection
+conn = ...
+
+# create and use lock
+lock = Lock(conn, "shared-identifier", rollback_on_error=False)
+
+# do things with the lock
 ```
 
 ### Changelog
 
+- **0.1.2**
+  - Add Lock.rollback_on_error (default true)
+  - Add Lock.handle_error() & Lock.handle_error_async()
 - **0.1.1**
   - Key can be str or int
