@@ -204,6 +204,7 @@ def test_context_manager__raises_exception(_load_impl):
     assert str(exc.value) == "Inner exception"
 
     lock.impl.acquire.assert_called_with(lock, block=True)
+    lock.impl.handle_error.assert_called_with(lock, exc.value)
     lock.impl.release.assert_called_with(lock)
 
 
@@ -226,6 +227,7 @@ async def test_context_manager_async(_load_impl):
 async def test_context_manager_async__raises_exception(_load_impl):
     lock = Lock(None, "key")
     lock.impl.acquire_async = AsyncMock()
+    lock.impl.handle_error_async = AsyncMock()
     lock.impl.release_async = AsyncMock()
 
     with raises(Exception) as exc:
@@ -235,16 +237,18 @@ async def test_context_manager_async__raises_exception(_load_impl):
     assert str(exc.value) == "Inner exception"
 
     lock.impl.acquire_async.assert_called_with(lock, block=True)
+    lock.impl.handle_error_async.assert_called_with(lock, exc.value)
     lock.impl.release_async.assert_called_with(lock)
 
 
 @patch(f"{PATH}.Lock._load_impl")
 def test_handle_error(_load_impl):
     lock = Lock(None, "key")
+    exc = Exception()
 
-    assert lock.impl.handle_error.return_value == lock.handle_error()
+    assert lock.impl.handle_error.return_value == lock.handle_error(exc)
 
-    lock.impl.handle_error.assert_called_with(lock)
+    lock.impl.handle_error.assert_called_with(lock, exc)
 
 
 @mark.asyncio
@@ -252,10 +256,13 @@ def test_handle_error(_load_impl):
 async def test_handle_error_async(_load_impl):
     lock = Lock(None, "key")
     lock.impl.handle_error_async = AsyncMock()
+    exc = Exception()
 
-    assert lock.impl.handle_error_async.return_value == await lock.handle_error_async()
+    assert lock.impl.handle_error_async.return_value == await lock.handle_error_async(
+        exc
+    )
 
-    lock.impl.handle_error_async.assert_called_with(lock)
+    lock.impl.handle_error_async.assert_called_with(lock, exc)
 
 
 @patch(f"{PATH}.Lock._load_impl")

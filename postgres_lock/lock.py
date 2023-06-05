@@ -151,17 +151,23 @@ class Lock:
 
         return self._locked
 
-    def handle_error(self) -> None:
+    def handle_error(self, exc: BaseException) -> None:
         """
         Handle an error.
-        """
-        return self.impl.handle_error(self)
 
-    async def handle_error_async(self) -> None:
+        Parameters:
+            exc (Exception): Exception.
+        """
+        return self.impl.handle_error(self, exc)
+
+    async def handle_error_async(self, exc: BaseException) -> None:
         """
         Handle an error asynchronously.
+
+        Parameters:
+            exc (Exception): Exception.
         """
-        return await self.impl.handle_error_async(self)
+        return await self.impl.handle_error_async(self, exc)
 
     @property
     def locked(self) -> bool:
@@ -304,6 +310,9 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
+        if exc:
+            await self.impl.handle_error_async(self, exc)
+
         await self.impl.release_async(self)
 
         if exc:
@@ -329,6 +338,9 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
+        if exc:
+            self.impl.handle_error(self, exc)
+
         self.impl.release(self)
 
         if exc:

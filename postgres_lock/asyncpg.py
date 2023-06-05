@@ -45,16 +45,22 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     return False if result is False else True
 
 
-def handle_error(lock: Lock) -> None:
+def handle_error(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     raise NotImplementedError("ascynpg interface does not support handle_error()")
 
 
-async def handle_error_async(lock: Lock) -> None:
+async def handle_error_async(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error asynchronously.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     if not lock.rollback_on_error:
         return

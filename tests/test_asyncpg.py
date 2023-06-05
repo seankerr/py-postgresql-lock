@@ -87,7 +87,7 @@ async def test_acquire_async__block_true(result):
 
 def test_handle_error():
     with raises(NotImplementedError) as exc:
-        handle_error(None)
+        handle_error(None, None)
 
     assert str(exc.value) == "ascynpg interface does not support handle_error()"
 
@@ -97,14 +97,14 @@ async def test_handle_error_async():
     lock = Mock()
     lock.conn.execute = AsyncMock()
 
-    await handle_error_async(lock)
+    await handle_error_async(lock, None)
 
 
 @mark.asyncio
 async def test_handle_error_async__rollback_disabled():
     lock = Mock(rollback_on_error=False)
 
-    await handle_error_async(lock)
+    await handle_error_async(lock, None)
 
 
 def test_release():

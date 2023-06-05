@@ -152,7 +152,7 @@ async def test_acquire_async__block_true(text, result):
 def test_handle_error():
     lock = Mock()
 
-    handle_error(lock)
+    handle_error(lock, None)
 
     lock.conn.rollback.assert_called_once()
 
@@ -160,7 +160,7 @@ def test_handle_error():
 def test_handle_error__rollback_disabled():
     lock = Mock(rollback_on_error=False)
 
-    handle_error(lock)
+    handle_error(lock, None)
 
 
 @mark.asyncio
@@ -168,7 +168,7 @@ async def test_handle_error_async():
     lock = Mock()
     lock.conn.rollback = AsyncMock()
 
-    await handle_error_async(lock)
+    await handle_error_async(lock, None)
 
     lock.conn.rollback.assert_called_once()
 
@@ -177,7 +177,7 @@ async def test_handle_error_async():
 async def test_handle_error_async__rollback_disabled():
     lock = Mock(rollback_on_error=False)
 
-    await handle_error_async(lock)
+    await handle_error_async(lock, None)
 
 
 @mark.parametrize("result", [True, False])

@@ -28,6 +28,7 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     cursor = lock.conn.cursor()
     cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     result, *_ = cursor.fetchone()
+    cursor.close()
 
     # lock function returns True/False in unblocking mode, and always None in blocking mode
     return False if result is False else True
@@ -54,14 +55,18 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     await cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
 
     result, *_ = await cursor.fetchone()
+    cursor.close()
 
     # lock function returns True/False in unblocking mode, and always None in blocking mode
     return False if result is False else True
 
 
-def handle_error(lock: Lock) -> None:
+def handle_error(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     if not lock.rollback_on_error:
         return
@@ -69,9 +74,12 @@ def handle_error(lock: Lock) -> None:
     lock.conn.rollback()
 
 
-async def handle_error_async(lock: Lock) -> None:
+async def handle_error_async(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error asynchronously.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     if not lock.rollback_on_error:
         return
@@ -92,6 +100,7 @@ def release(lock: Lock) -> bool:
     cursor = lock.conn.cursor()
     cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
     result, *_ = cursor.fetchone()
+    cursor.close()
 
     return result
 
@@ -111,5 +120,6 @@ async def release_async(lock: Lock) -> bool:
     await cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
 
     result, *_ = await cursor.fetchone()
+    cursor.close()
 
     return result

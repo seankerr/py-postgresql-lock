@@ -30,6 +30,7 @@ def test_acquire__defaults(result):
         assert not acquire(lock)
 
     cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.close.assert_called_once()
 
 
 @mark.parametrize("result", [None, True, False])
@@ -72,6 +73,7 @@ def test_acquire__block_true(result):
         assert not acquire(lock, block=True)
 
     cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.close.assert_called_once()
 
 
 @mark.asyncio
@@ -85,7 +87,7 @@ async def test_acquire_async():
 def test_handle_error():
     lock = Mock()
 
-    handle_error(lock)
+    handle_error(lock, None)
 
     lock.conn.rollback.assert_called_once()
 
@@ -93,13 +95,13 @@ def test_handle_error():
 def test_handle_error__rollback_disabled():
     lock = Mock(rollback_on_error=False)
 
-    handle_error(lock)
+    handle_error(lock, None)
 
 
 @mark.asyncio
 async def test_handle_error_async():
     with raises(NotImplementedError) as exc:
-        await handle_error_async(None)
+        await handle_error_async(None, None)
 
     assert str(exc.value) == "psycopg2 interface does not support handle_error_async()"
 
@@ -117,6 +119,7 @@ def test_release(result):
     cursor.execute.assert_called_with(
         f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
     )
+    cursor.close.assert_called_once()
 
 
 @mark.asyncio

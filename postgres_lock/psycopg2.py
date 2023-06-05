@@ -48,9 +48,12 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     raise NotImplementedError("psycopg2 interface does not support acquire_async()")
 
 
-def handle_error(lock: Lock) -> None:
+def handle_error(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     if not lock.rollback_on_error:
         return
@@ -58,9 +61,12 @@ def handle_error(lock: Lock) -> None:
     lock.conn.rollback()
 
 
-async def handle_error_async(lock: Lock) -> None:
+async def handle_error_async(lock: Lock, exc: BaseException) -> None:
     """
     Handle an error asynchronously.
+
+    Parameters:
+        exc (Exception): Exception.
     """
     raise NotImplementedError(
         "psycopg2 interface does not support handle_error_async()"
