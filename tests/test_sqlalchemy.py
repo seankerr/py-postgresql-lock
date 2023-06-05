@@ -1,5 +1,7 @@
 from postgres_lock.sqlalchemy import acquire
 from postgres_lock.sqlalchemy import acquire_async
+from postgres_lock.sqlalchemy import handle_error
+from postgres_lock.sqlalchemy import handle_error_async
 from postgres_lock.sqlalchemy import release
 from postgres_lock.sqlalchemy import release_async
 
@@ -145,6 +147,37 @@ async def test_acquire_async__block_true(text, result):
 
     text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
+
+
+def test_handle_error():
+    lock = Mock()
+
+    handle_error(lock)
+
+    lock.conn.rollback.assert_called_once()
+
+
+def test_handle_error__rollback_disabled():
+    lock = Mock(rollback_on_error=False)
+
+    handle_error(lock)
+
+
+@mark.asyncio
+async def test_handle_error_async():
+    lock = Mock()
+    lock.conn.rollback = AsyncMock()
+
+    await handle_error_async(lock)
+
+    lock.conn.rollback.assert_called_once()
+
+
+@mark.asyncio
+async def test_handle_error_async__rollback_disabled():
+    lock = Mock(rollback_on_error=False)
+
+    await handle_error_async(lock)
 
 
 @mark.parametrize("result", [True, False])

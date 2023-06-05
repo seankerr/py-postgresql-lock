@@ -51,6 +51,7 @@ class Lock:
     interface: str
     key: str | int
     lock_id: int
+    rollback_on_error: bool
     scope: str
     shared: bool
 
@@ -69,6 +70,7 @@ class Lock:
             "psycopg3",
             "sqlalchemy",
         ] = "auto",
+        rollback_on_error: bool = True,
         scope: Literal["session", "transaction"] = "session",
         shared: bool = False,
     ):
@@ -79,6 +81,7 @@ class Lock:
             conn (object): Database connection.
             key (str|int): Unique lock key.
             interface (str): Database interface.
+            rollback_on_error (bool): Rollback if an error occurs while in a `with` statement.
             scope (str): Lock scope.
             shared (bool): Use a shared lock.
         """
@@ -89,6 +92,7 @@ class Lock:
         self.lock_id = str(int(hashlib.sha1(str(key).encode("utf-8")).hexdigest(), 16))[
             :18
         ]
+        self.rollback_on_error = rollback_on_error
         self.scope = scope
         self._locked = False
         self._ref_count = 0
@@ -146,6 +150,18 @@ class Lock:
         self._ref_count += 1
 
         return self._locked
+
+    def handle_error(self) -> None:
+        """
+        Handle an error.
+        """
+        return self.impl.handle_error(self)
+
+    async def handle_error_async(self) -> None:
+        """
+        Handle an error asynchronously.
+        """
+        return await self.impl.handle_error_async(self)
 
     @property
     def locked(self) -> bool:

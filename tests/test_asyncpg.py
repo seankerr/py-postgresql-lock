@@ -1,5 +1,7 @@
 from postgres_lock.asyncpg import acquire
 from postgres_lock.asyncpg import acquire_async
+from postgres_lock.asyncpg import handle_error
+from postgres_lock.asyncpg import handle_error_async
 from postgres_lock.asyncpg import release
 from postgres_lock.asyncpg import release_async
 
@@ -81,6 +83,28 @@ async def test_acquire_async__block_true(result):
     lock.conn.fetchval.assert_called_with(
         f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
     )
+
+
+def test_handle_error():
+    with raises(NotImplementedError) as exc:
+        handle_error(None)
+
+    assert str(exc.value) == "ascynpg interface does not support handle_error()"
+
+
+@mark.asyncio
+async def test_handle_error_async():
+    lock = Mock()
+    lock.conn.execute = AsyncMock()
+
+    await handle_error_async(lock)
+
+
+@mark.asyncio
+async def test_handle_error_async__rollback_disabled():
+    lock = Mock(rollback_on_error=False)
+
+    await handle_error_async(lock)
 
 
 def test_release():

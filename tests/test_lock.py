@@ -32,6 +32,7 @@ def test___init___defaults(_load_impl, hashlib, int, str):
     assert lock.impl == _load_impl()
     assert lock.key == key
     assert lock.lock_id == str()[:18]
+    assert lock.rollback_on_error
     assert lock.scope == "session"
     assert not lock._locked
     assert lock._ref_count == 0
@@ -40,6 +41,20 @@ def test___init___defaults(_load_impl, hashlib, int, str):
     assert lock.blocking_lock_func == "pg_advisory_lock"
     assert lock.nonblocking_lock_func == "pg_try_advisory_lock"
     assert lock.unlock_func == "pg_advisory_unlock"
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test___init___rollback_on_error_false(_load_impl):
+    lock = Lock(None, "key", rollback_on_error=False)
+
+    assert not lock.rollback_on_error
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test___init___rollback_on_error_true(_load_impl):
+    lock = Lock(None, "key", rollback_on_error=True)
+
+    assert lock.rollback_on_error
 
 
 @patch(f"{PATH}.Lock._load_impl")
@@ -221,6 +236,26 @@ async def test_context_manager_async__raises_exception(_load_impl):
 
     lock.impl.acquire_async.assert_called_with(lock, block=True)
     lock.impl.release_async.assert_called_with(lock)
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_handle_error(_load_impl):
+    lock = Lock(None, "key")
+
+    assert lock.impl.handle_error.return_value == lock.handle_error()
+
+    lock.impl.handle_error.assert_called_with(lock)
+
+
+@mark.asyncio
+@patch(f"{PATH}.Lock._load_impl")
+async def test_handle_error_async(_load_impl):
+    lock = Lock(None, "key")
+    lock.impl.handle_error_async = AsyncMock()
+
+    assert lock.impl.handle_error_async.return_value == await lock.handle_error_async()
+
+    lock.impl.handle_error_async.assert_called_with(lock)
 
 
 @patch(f"{PATH}.Lock._load_impl")

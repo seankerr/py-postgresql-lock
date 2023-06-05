@@ -59,6 +59,26 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     return False if result is False else True
 
 
+def handle_error(lock: Lock) -> None:
+    """
+    Handle an error.
+    """
+    if not lock.rollback_on_error:
+        return
+
+    lock.conn.rollback()
+
+
+async def handle_error_async(lock: Lock) -> None:
+    """
+    Handle an error asynchronously.
+    """
+    if not lock.rollback_on_error:
+        return
+
+    await lock.conn.rollback()
+
+
 def release(lock: Lock) -> bool:
     """
     Release the lock.

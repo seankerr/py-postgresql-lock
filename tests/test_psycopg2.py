@@ -1,5 +1,7 @@
 from postgres_lock.psycopg2 import acquire
 from postgres_lock.psycopg2 import acquire_async
+from postgres_lock.psycopg2 import handle_error
+from postgres_lock.psycopg2 import handle_error_async
 from postgres_lock.psycopg2 import release
 from postgres_lock.psycopg2 import release_async
 
@@ -78,6 +80,28 @@ async def test_acquire_async():
         await acquire_async(None)
 
     assert str(exc.value) == "psycopg2 interface does not support acquire_async()"
+
+
+def test_handle_error():
+    lock = Mock()
+
+    handle_error(lock)
+
+    lock.conn.rollback.assert_called_once()
+
+
+def test_handle_error__rollback_disabled():
+    lock = Mock(rollback_on_error=False)
+
+    handle_error(lock)
+
+
+@mark.asyncio
+async def test_handle_error_async():
+    with raises(NotImplementedError) as exc:
+        await handle_error_async(None)
+
+    assert str(exc.value) == "psycopg2 interface does not support handle_error_async()"
 
 
 @mark.parametrize("result", [True, False])

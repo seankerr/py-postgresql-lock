@@ -28,6 +28,7 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     cursor = lock.conn.cursor()
     cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     result, *_ = cursor.fetchone()
+    cursor.close()
 
     # lock function returns True/False in unblocking mode, and always None in blocking mode
     return False if result is False else True
@@ -47,6 +48,25 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     raise NotImplementedError("psycopg2 interface does not support acquire_async()")
 
 
+def handle_error(lock: Lock) -> None:
+    """
+    Handle an error.
+    """
+    if not lock.rollback_on_error:
+        return
+
+    lock.conn.rollback()
+
+
+async def handle_error_async(lock: Lock) -> None:
+    """
+    Handle an error asynchronously.
+    """
+    raise NotImplementedError(
+        "psycopg2 interface does not support handle_error_async()"
+    )
+
+
 def release(lock: Lock) -> bool:
     """
     Release the lock.
@@ -60,6 +80,7 @@ def release(lock: Lock) -> bool:
     cursor = lock.conn.cursor()
     cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
     result, *_ = cursor.fetchone()
+    cursor.close()
 
     return result
 
