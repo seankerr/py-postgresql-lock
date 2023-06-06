@@ -53,7 +53,9 @@ class Lock:
     lock_id: int
     rollback_on_error: bool
     scope: str
-    shared: bool
+    _locked: bool
+    _ref_count: int
+    _shared: bool
 
     blocking_lock_func: str
     nonblocking_lock_func: str
