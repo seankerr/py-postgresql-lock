@@ -6,6 +6,7 @@ from pytest import raises
 
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
+from unittest.mock import call
 from unittest.mock import patch
 
 PATH = "postgres_lock.lock"
@@ -22,16 +23,24 @@ def test___init___defaults(_load_impl, hashlib, int, str):
 
     assert str.call_args_list[0][0][0] == key
 
+    call_args = str.call_args_list
+
+    assert call_args[0] == call(key)
+
     str().encode.assert_called_with("utf-8")
     hashlib.sha1.assert_called_with(str().encode())
     hashlib.sha1().hexdigest.assert_called_once()
-    int.assert_called_with(hashlib.sha1().hexdigest(), 16)
+
+    call_args = int.call_args_list
+
+    assert call_args[0] == call(hashlib.sha1().hexdigest(), 16)
+    assert call_args[1] == call(str()[:18])
 
     assert lock.conn == conn
     assert lock.interface == "auto"
     assert lock.impl == _load_impl()
     assert lock.key == key
-    assert lock.lock_id == str()[:18]
+    assert lock.lock_id == int()
     assert lock.rollback_on_error
     assert lock.scope == "session"
     assert not lock._locked
