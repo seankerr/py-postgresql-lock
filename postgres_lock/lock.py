@@ -64,7 +64,7 @@ class Lock:
     def __init__(
         self,
         conn: Any,
-        key: str | int,
+        key: Any,
         interface: Literal[
             "auto",
             "asyncpg",
@@ -81,7 +81,7 @@ class Lock:
 
         Parameters:
             conn (object): Database connection.
-            key (str|int): Unique lock key.
+            key (object): Unique lock key.
             interface (str): Database interface.
             rollback_on_error (bool): Rollback if an error occurs while in a `with` statement.
             scope (str): Lock scope.
