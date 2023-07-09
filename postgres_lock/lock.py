@@ -49,7 +49,7 @@ class Lock:
 
     conn: Any
     interface: str
-    key: str | int
+    key: Any
     lock_id: int
     rollback_on_error: bool
     scope: str
