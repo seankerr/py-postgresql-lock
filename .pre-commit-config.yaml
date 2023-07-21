@@ -18,6 +18,10 @@ repos:
         args:
           - "--ignore=E203,E501,E722,W503"
           - "--max-line-length=100"
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.4.1
+    hooks:
+      - id: mypy
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1
     hooks:
