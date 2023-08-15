@@ -1,6 +1,6 @@
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2023 Sean Kerr
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 
 """
 Lock support for sqlalchemy database interface.
@@ -31,7 +31,8 @@ def acquire(lock: Lock, block: bool = True) -> bool:
         text(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     ).scalar()
 
-    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
     return False if result is False else True
 
 
@@ -55,7 +56,8 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
         await lock.conn.execute(text(f"SELECT pg_catalog.{lock_func}({lock.lock_id})"))
     ).scalar()
 
-    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
     return False if result is False else True
 
 

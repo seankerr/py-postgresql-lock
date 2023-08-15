@@ -1,6 +1,6 @@
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2023 Sean Kerr
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 
 from importlib import import_module
 
@@ -21,8 +21,8 @@ class Lock:
     """
     Lock mechanism implemented with Postgres advisory locks.
 
-    Default operation is session lock scope and blocking mode and is sufficient for distributed
-    locks. The database interface will be detected automatically.
+    Default operation is session lock scope and blocking mode and is sufficient for
+    distributed locks. The database interface will be detected automatically.
 
     Database interfaces:
         - asyncpg
@@ -38,7 +38,8 @@ class Lock:
 
     Lock scopes:
         - session: only a single session can hold the lock
-        - transaction: only a single transaction within a single session can hold the lock
+        - transaction: only a single transaction within a single session can hold the
+          lock
 
     Modes:
         - blocked: do not return until the lock is acquired
@@ -83,7 +84,8 @@ class Lock:
             conn (object): Database connection.
             key (object): Unique lock key.
             interface (str): Database interface.
-            rollback_on_error (bool): Rollback if an error occurs while in a `with` statement.
+            rollback_on_error (bool): Rollback if an error occurs while in a `with`
+                statement.
             scope (str): Lock scope.
             shared (bool): Use a shared lock.
         """
@@ -195,8 +197,8 @@ class Lock:
         """
         Release the lock.
 
-        When using shared locks, all references to the lock within the current scope must be
-        released before this method will return True.
+        When using shared locks, all references to the lock within the current scope
+        must be released before this method will return True.
 
         Raises:
             errors.ReleaseError: An attempt to release the lock failed.
@@ -221,8 +223,8 @@ class Lock:
         """
         Release the lock asynchronously.
 
-        When using shared locks, all references to the lock within the current scope must be
-        released before this method will return True.
+        When using shared locks, all references to the lock within the current scope
+        must be released before this method will return True.
 
         Raises:
             errors.ReleaseError: An attempt to release the lock failed.

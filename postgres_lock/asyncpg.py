@@ -1,6 +1,6 @@
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2023 Sean Kerr
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 
 """
 Lock support for asyncpg database interface.
@@ -41,7 +41,8 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
 
     result = await lock.conn.fetchval(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
 
-    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
     return False if result is False else True
 
 

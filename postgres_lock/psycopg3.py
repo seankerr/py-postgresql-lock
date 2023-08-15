@@ -1,6 +1,6 @@
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Copyright (c) 2023 Sean Kerr
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 
 """
 Lock support for psycopg3 database interface.
@@ -30,7 +30,8 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     result, *_ = cursor.fetchone()
     cursor.close()
 
-    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
     return False if result is False else True
 
 
@@ -57,7 +58,8 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     result, *_ = await cursor.fetchone()
     cursor.close()
 
-    # lock function returns True/False in unblocking mode, and always None in blocking mode
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
     return False if result is False else True
 
 
