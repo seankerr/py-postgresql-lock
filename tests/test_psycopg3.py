@@ -1,3 +1,8 @@
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2023 Sean Kerr
+# --------------------------------------------------------------------------------------
+
+# postgres-lock imports
 from postgres_lock.psycopg3 import acquire
 from postgres_lock.psycopg3 import acquire_async
 from postgres_lock.psycopg3 import handle_error
@@ -5,10 +10,12 @@ from postgres_lock.psycopg3 import handle_error_async
 from postgres_lock.psycopg3 import release
 from postgres_lock.psycopg3 import release_async
 
-from pytest import mark
-
+# system imports
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
+
+# dependency imports
+from pytest import mark
 
 
 @mark.parametrize("result", [None, True, False])

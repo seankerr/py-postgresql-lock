@@ -1,3 +1,8 @@
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2023 Sean Kerr
+# --------------------------------------------------------------------------------------
+
+# postgres-lock imports
 from postgres_lock.sqlalchemy import acquire
 from postgres_lock.sqlalchemy import acquire_async
 from postgres_lock.sqlalchemy import handle_error
@@ -5,11 +10,13 @@ from postgres_lock.sqlalchemy import handle_error_async
 from postgres_lock.sqlalchemy import release
 from postgres_lock.sqlalchemy import release_async
 
-from pytest import mark
-
+# system imports
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import patch
+
+# dependency imports
+from pytest import mark
 
 PATH = "postgres_lock.sqlalchemy"
 

@@ -1,3 +1,8 @@
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2023 Sean Kerr
+# --------------------------------------------------------------------------------------
+
+# postgres-lock imports
 from postgres_lock.asyncpg import acquire
 from postgres_lock.asyncpg import acquire_async
 from postgres_lock.asyncpg import handle_error
@@ -5,11 +10,13 @@ from postgres_lock.asyncpg import handle_error_async
 from postgres_lock.asyncpg import release
 from postgres_lock.asyncpg import release_async
 
-from pytest import mark
-from pytest import raises
-
+# system imports
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
+
+# dependency imports
+from pytest import mark
+from pytest import raises
 
 
 def test_acquire():

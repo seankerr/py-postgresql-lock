@@ -2,6 +2,10 @@
 # Copyright (c) 2023 Sean Kerr
 # --------------------------------------------------------------------------------------
 
+# postgres-lock imports
+from . import errors
+
+# system imports
 from importlib import import_module
 
 from types import ModuleType
@@ -13,8 +17,6 @@ from typing import Optional
 from typing import Type
 
 import hashlib
-
-from . import errors
 
 
 class Lock:

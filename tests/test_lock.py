@@ -1,13 +1,20 @@
+# --------------------------------------------------------------------------------------
+# Copyright (c) 2023 Sean Kerr
+# --------------------------------------------------------------------------------------
+
+# postgres-lock imports
 from postgres_lock import Lock
 from postgres_lock import errors
 
-from pytest import mark
-from pytest import raises
-
+# system imports
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import call
 from unittest.mock import patch
+
+# dependency imports
+from pytest import mark
+from pytest import raises
 
 PATH = "postgres_lock.lock"
 

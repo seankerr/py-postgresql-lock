@@ -6,9 +6,11 @@
 Lock support for sqlalchemy database interface.
 """
 
-from sqlalchemy import text
-
+# postgres-lock imports
 from .lock import Lock
+
+# dependency imports
+from sqlalchemy import text
 
 
 def acquire(lock: Lock, block: bool = True) -> bool:
