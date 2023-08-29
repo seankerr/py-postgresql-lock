@@ -175,6 +175,8 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.4**
+  - Add py.typed for mypy
 - **0.1.3**
   - Key can be any object
 - **0.1.2**
