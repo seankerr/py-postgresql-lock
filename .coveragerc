@@ -2,4 +2,4 @@
 show_missing = True
 
 [run]
-source = postgres_lock
+source = postgresql_lock
