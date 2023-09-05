@@ -3,25 +3,37 @@
 # --------------------------------------------------------------------------------------
 
 """
-Lock support for asyncpg database interface.
+Lock support for psycopg3 database interface.
 """
 
-# postgres-lock imports
+# postgresql-lock imports
 from .lock import Lock
 
 
 def acquire(lock: Lock, block: bool = True) -> bool:
     """
-    This function is not implemented.
+    Acquire the lock.
 
     Parameters:
         lock (Lock): Lock.
         block (bool): Return only once the lock has been acquired.
 
-    Raises:
-        NotImplementedError: This function is not implemented.
+    Returns:
+        bool: True, if the lock was acquired, otherwise False.
     """
-    raise NotImplementedError("ascynpg interface does not support acquire()")
+    lock_func = lock.blocking_lock_func
+
+    if not block:
+        lock_func = lock.nonblocking_lock_func
+
+    cursor = lock.conn.cursor()
+    cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    result, *_ = cursor.fetchone()
+    cursor.close()
+
+    # lock function returns True/False in unblocking mode, and always None in blocking
+    # mode
+    return False if result is False else True
 
 
 async def acquire_async(lock: Lock, block: bool = True) -> bool:
@@ -40,7 +52,12 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     if not block:
         lock_func = lock.nonblocking_lock_func
 
-    result = await lock.conn.fetchval(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor = lock.conn.cursor()
+
+    await cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+
+    result, *_ = await cursor.fetchone()
+    cursor.close()
 
     # lock function returns True/False in unblocking mode, and always None in blocking
     # mode
@@ -54,7 +71,10 @@ def handle_error(lock: Lock, exc: BaseException) -> None:
     Parameters:
         exc (Exception): Exception.
     """
-    raise NotImplementedError("ascynpg interface does not support handle_error()")
+    if not lock.rollback_on_error:
+        return
+
+    lock.conn.rollback()
 
 
 async def handle_error_async(lock: Lock, exc: BaseException) -> None:
@@ -67,20 +87,25 @@ async def handle_error_async(lock: Lock, exc: BaseException) -> None:
     if not lock.rollback_on_error:
         return
 
-    await lock.conn.execute("ROLLBACK")
+    await lock.conn.rollback()
 
 
 def release(lock: Lock) -> bool:
     """
-    This function is not implemented.
+    Release the lock.
 
     Parameters:
         lock (Lock): Lock.
 
-    Raises:
-        NotImplementedError: This function is not implemented.
+    Returns:
+        bool: True, if the lock was released, otherwise False.
     """
-    raise NotImplementedError("ascynpg interface does not support release()")
+    cursor = lock.conn.cursor()
+    cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
+    result, *_ = cursor.fetchone()
+    cursor.close()
+
+    return result
 
 
 async def release_async(lock: Lock) -> bool:
@@ -93,6 +118,11 @@ async def release_async(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    return await lock.conn.fetchval(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
-    )
+    cursor = lock.conn.cursor()
+
+    await cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
+
+    result, *_ = await cursor.fetchone()
+    cursor.close()
+
+    return result

@@ -6,7 +6,7 @@
 Lock support for sqlalchemy database interface.
 """
 
-# postgres-lock imports
+# postgresql-lock imports
 from .lock import Lock
 
 # dependency imports

@@ -6,7 +6,7 @@
 Lock support for psycopg2 database interface.
 """
 
-# postgres-lock imports
+# postgresql-lock imports
 from .lock import Lock
 
 

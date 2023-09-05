@@ -2,7 +2,7 @@
 # Copyright (c) 2023 Sean Kerr
 # --------------------------------------------------------------------------------------
 
-# postgres-lock imports
+# postgresql-lock imports
 from . import errors
 
 # system imports
@@ -295,7 +295,7 @@ class Lock:
         self.interface = interface
 
         try:
-            return import_module(f".{interface}", package="postgres_lock")
+            return import_module(f".{interface}", package="postgresql_lock")
 
         except ModuleNotFoundError:
             raise errors.UnsupportedInterfaceError(
