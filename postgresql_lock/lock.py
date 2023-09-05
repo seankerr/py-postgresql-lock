@@ -21,7 +21,7 @@ import hashlib
 
 class Lock:
     """
-    Lock mechanism implemented with Postgres advisory locks.
+    Lock mechanism implemented with PostgreSQL advisory locks.
 
     Default operation is session lock scope and blocking mode and is sufficient for
     distributed locks. The database interface will be detected automatically.

@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------------------
 
 """
-Lock mechanism implemented with Postgres advisory locks.
+Lock mechanism implemented with PostgreSQL advisory locks.
 """
 
 # postgresql-lock imports
