@@ -1,4 +1,4 @@
-## postgres-lock
+## postgresql-lock
 
 Lock mechanism implemented with Postgres advisory locks.
 
@@ -7,7 +7,7 @@ Easily implement distributed database locking.
 ### Install
 
 ```sh
-pip install postgres-lock
+pip install postgresql-lock
 ```
 
 ### Supported database interfaces
@@ -32,7 +32,7 @@ pip install postgres-lock
 
 ### Default operation
 
-By default `postgres-lock` will use `session` lock scope in `blocking` mode with
+By default `postgresql-lock` will use `session` lock scope in `blocking` mode with
 `rollback_on_error` enabled. The `session` lock scope means only a single database connection can
 acquire the lock at a time.
 
@@ -47,7 +47,7 @@ handled prior to release.
 _Using `with` and `async with` implies blocking mode._
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -62,7 +62,7 @@ with Lock(conn, "shared-identifier"):
 Now compare the above example to the equivalent try/finally example below:
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -93,7 +93,7 @@ finally:
 ### Asynchronous usage (without `async with`)
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -124,7 +124,7 @@ finally:
 ### Non-blocking mode (supports async as well)
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -148,7 +148,7 @@ lock.release()
 ### Specify the database interface manually
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -162,7 +162,7 @@ lock = Lock(conn, "shared-identifier", interface="asyncpg")
 ### Handle rollbacks manually
 
 ```python
-from postgres_lock import Lock
+from postgresql_lock import Lock
 
 # setup connection
 conn = ...
@@ -175,6 +175,8 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.5**
+  - Rename package from postgres-lock to postgresql-lock
 - **0.1.4**
   - Add py.typed for mypy
 - **0.1.3**

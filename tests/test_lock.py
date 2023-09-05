@@ -2,11 +2,13 @@
 # Copyright (c) 2023 Sean Kerr
 # --------------------------------------------------------------------------------------
 
-# postgres-lock imports
-from postgres_lock import Lock
-from postgres_lock import errors
+# postgresql-lock imports
+from postgresql_lock import Lock
+from postgresql_lock import errors
 
 # system imports
+from typing import Any
+
 from unittest.mock import AsyncMock
 from unittest.mock import Mock
 from unittest.mock import call
@@ -16,14 +18,16 @@ from unittest.mock import patch
 from pytest import mark
 from pytest import raises
 
-PATH = "postgres_lock.lock"
+PATH = "postgresql_lock.lock"
 
 
 @patch(f"{PATH}.str")
 @patch(f"{PATH}.int")
 @patch(f"{PATH}.hashlib")
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___defaults(_load_impl, hashlib, int, str):
+def test___init___defaults(
+    _load_impl: Mock, hashlib: Mock, int: Mock, str: Mock
+) -> None:
     conn = Mock()
     key = Mock()
     lock = Lock(conn, key)
@@ -60,21 +64,21 @@ def test___init___defaults(_load_impl, hashlib, int, str):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___rollback_on_error_false(_load_impl):
+def test___init___rollback_on_error_false(_load_impl: Mock) -> None:
     lock = Lock(None, "key", rollback_on_error=False)
 
     assert not lock.rollback_on_error
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___rollback_on_error_true(_load_impl):
+def test___init___rollback_on_error_true(_load_impl: Mock) -> None:
     lock = Lock(None, "key", rollback_on_error=True)
 
     assert lock.rollback_on_error
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___session(_load_impl):
+def test___init___session(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="session")
 
     assert lock.blocking_lock_func == "pg_advisory_lock"
@@ -83,7 +87,7 @@ def test___init___session(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___session_shared(_load_impl):
+def test___init___session_shared(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="session", shared=True)
 
     assert lock._shared
@@ -94,7 +98,7 @@ def test___init___session_shared(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___transaction(_load_impl):
+def test___init___transaction(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="transaction")
 
     assert lock.blocking_lock_func == "pg_advisory_xact_lock"
@@ -103,7 +107,7 @@ def test___init___transaction(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test___init___transaction_shared(_load_impl):
+def test___init___transaction_shared(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="transaction", shared=True)
 
     assert lock._shared
@@ -114,7 +118,7 @@ def test___init___transaction_shared(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_acquire__defaults(_load_impl):
+def test_acquire__defaults(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     assert lock.impl.acquire.return_value == lock.acquire()
@@ -127,7 +131,7 @@ def test_acquire__defaults(_load_impl):
 
 @mark.parametrize("block", [True, False])
 @patch(f"{PATH}.Lock._load_impl")
-def test_acquire__block(_load_impl, block):
+def test_acquire__block(_load_impl: Mock, block: Any) -> None:
     lock = Lock(None, "key")
 
     assert lock.impl.acquire.return_value == lock.acquire(block=block)
@@ -139,7 +143,7 @@ def test_acquire__block(_load_impl, block):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_acquire__locked_not_shared(_load_impl):
+def test_acquire__locked_not_shared(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     lock.acquire()
 
@@ -154,9 +158,9 @@ def test_acquire__locked_not_shared(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_acquire_async__defaults(_load_impl):
+async def test_acquire_async__defaults(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
-    lock.impl.acquire_async = AsyncMock()
+    lock.impl.acquire_async = AsyncMock()  # type: ignore
 
     assert lock.impl.acquire_async.return_value == await lock.acquire_async()
 
@@ -169,9 +173,9 @@ async def test_acquire_async__defaults(_load_impl):
 @mark.asyncio
 @mark.parametrize("block", [True, False])
 @patch(f"{PATH}.Lock._load_impl")
-async def test_acquire_async__block(_load_impl, block):
+async def test_acquire_async__block(_load_impl: Mock, block: Any) -> None:
     lock = Lock(None, "key")
-    lock.impl.acquire_async = AsyncMock()
+    lock.impl.acquire_async = AsyncMock()  # type: ignore
 
     assert lock.impl.acquire_async.return_value == await lock.acquire_async(block=block)
 
@@ -183,9 +187,9 @@ async def test_acquire_async__block(_load_impl, block):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_acquire_async__locked_not_shared(_load_impl):
+async def test_acquire_async__locked_not_shared(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
-    lock.impl.acquire_async = AsyncMock()
+    lock.impl.acquire_async = AsyncMock()  # type: ignore
 
     await lock.acquire_async()
 
@@ -199,7 +203,7 @@ async def test_acquire_async__locked_not_shared(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_context_manager(_load_impl):
+def test_context_manager(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     with lock:
@@ -210,7 +214,7 @@ def test_context_manager(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_context_manager__raises_exception(_load_impl):
+def test_context_manager__raises_exception(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     with raises(Exception) as exc:
@@ -226,10 +230,10 @@ def test_context_manager__raises_exception(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_context_manager_async(_load_impl):
+async def test_context_manager_async(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
-    lock.impl.acquire_async = AsyncMock()
-    lock.impl.release_async = AsyncMock()
+    lock.impl.acquire_async = AsyncMock()  # type: ignore
+    lock.impl.release_async = AsyncMock()  # type: ignore
 
     async with lock:
         pass
@@ -240,11 +244,11 @@ async def test_context_manager_async(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_context_manager_async__raises_exception(_load_impl):
+async def test_context_manager_async__raises_exception(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
-    lock.impl.acquire_async = AsyncMock()
-    lock.impl.handle_error_async = AsyncMock()
-    lock.impl.release_async = AsyncMock()
+    lock.impl.acquire_async = AsyncMock()  # type: ignore
+    lock.impl.handle_error_async = AsyncMock()  # type: ignore
+    lock.impl.release_async = AsyncMock()  # type: ignore
 
     with raises(Exception) as exc:
         async with lock:
@@ -258,31 +262,29 @@ async def test_context_manager_async__raises_exception(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_handle_error(_load_impl):
+def test_handle_error(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     exc = Exception()
 
-    assert lock.impl.handle_error.return_value == lock.handle_error(exc)
+    lock.handle_error(exc)
 
     lock.impl.handle_error.assert_called_with(lock, exc)
 
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_handle_error_async(_load_impl):
+async def test_handle_error_async(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
-    lock.impl.handle_error_async = AsyncMock()
+    lock.impl.handle_error_async = AsyncMock()  # type: ignore
     exc = Exception()
 
-    assert lock.impl.handle_error_async.return_value == await lock.handle_error_async(
-        exc
-    )
+    await lock.handle_error_async(exc)
 
     lock.impl.handle_error_async.assert_called_with(lock, exc)
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_locked(_load_impl):
+def test_locked(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     assert not lock.locked
@@ -293,7 +295,7 @@ def test_locked(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_ref_count(_load_impl):
+def test_ref_count(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     assert lock.ref_count == 0
@@ -304,7 +306,7 @@ def test_ref_count(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_release(_load_impl):
+def test_release(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     lock._locked = True
     lock._ref_count = 1
@@ -315,14 +317,14 @@ def test_release(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_release__not_locked(_load_impl):
+def test_release__not_locked(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     assert not lock.release()
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_release__not_released(_load_impl):
+def test_release__not_released(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     lock._locked = True
     lock._ref_count = 1
@@ -340,11 +342,11 @@ def test_release__not_released(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_release_async(_load_impl):
+async def test_release_async(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     lock._locked = True
     lock._ref_count = 1
-    lock.impl.release_async = AsyncMock(return_value=True)
+    lock.impl.release_async = AsyncMock(return_value=True)  # type: ignore
 
     assert await lock.release_async()
     assert lock._ref_count == 0
@@ -353,7 +355,7 @@ async def test_release_async(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_release_async__not_locked(_load_impl):
+async def test_release_async__not_locked(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
     assert not await lock.release_async()
@@ -361,11 +363,11 @@ async def test_release_async__not_locked(_load_impl):
 
 @mark.asyncio
 @patch(f"{PATH}.Lock._load_impl")
-async def test_release_async__not_released(_load_impl):
+async def test_release_async__not_released(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
     lock._locked = True
     lock._ref_count = 1
-    lock.impl.release_async = AsyncMock(return_value=False)
+    lock.impl.release_async = AsyncMock(return_value=False)  # type: ignore
 
     with raises(errors.ReleaseError) as exc:
         await lock.release_async()
@@ -378,57 +380,57 @@ async def test_release_async__not_released(_load_impl):
 
 
 @patch(f"{PATH}.Lock._load_impl")
-def test_shared(_load_impl):
+def test_shared(_load_impl: Mock) -> None:
     assert not Lock(None, "key").shared
     assert Lock(None, "key", shared=True).shared
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__detect_interface__asyncpg(import_module):
+def test__load_impl__detect_interface__asyncpg(import_module: Mock) -> None:
     conn = Mock()
     conn.__class__.__module__ = "asyncpg."
     lock = Mock(conn=conn, interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(".asyncpg", package="postgres_lock")
+    import_module.assert_called_with(".asyncpg", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__detect_interface__psycopg3(import_module):
+def test__load_impl__detect_interface__psycopg3(import_module: Mock) -> None:
     conn = Mock()
     conn.__class__.__module__ = "psycopg"
     lock = Mock(conn=conn, interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(".psycopg3", package="postgres_lock")
+    import_module.assert_called_with(".psycopg3", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__detect_interface__psycopg2(import_module):
+def test__load_impl__detect_interface__psycopg2(import_module: Mock) -> None:
     conn = Mock()
     conn.__class__.__module__ = "psycopg2."
     lock = Mock(conn=conn, interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(".psycopg2", package="postgres_lock")
+    import_module.assert_called_with(".psycopg2", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__detect_interface__sqlalchemy(import_module):
+def test__load_impl__detect_interface__sqlalchemy(import_module: Mock) -> None:
     conn = Mock()
     conn.__class__.__module__ = "sqlalchemy"
     lock = Mock(conn=conn, interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(".sqlalchemy", package="postgres_lock")
+    import_module.assert_called_with(".sqlalchemy", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__detect_interface__unsupported(import_module):
+def test__load_impl__detect_interface__unsupported(import_module: Mock) -> None:
     conn = Mock()
     lock = Mock(conn=conn, interface="auto")
 
@@ -443,18 +445,18 @@ def test__load_impl__detect_interface__unsupported(import_module):
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__specify_interface(import_module):
+def test__load_impl__specify_interface(import_module: Mock) -> None:
     conn = Mock()
     interface = Mock()
     lock = Mock(conn=conn, interface=interface)
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(f".{lock.interface}", package="postgres_lock")
+    import_module.assert_called_with(f".{lock.interface}", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
-def test__load_impl__specify_interface__module_not_found(import_module):
+def test__load_impl__specify_interface__module_not_found(import_module: Mock) -> None:
     conn = Mock()
     interface = Mock()
     lock = Mock(conn=conn, interface=interface)

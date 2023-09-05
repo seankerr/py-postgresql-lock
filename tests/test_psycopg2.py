@@ -2,15 +2,17 @@
 # Copyright (c) 2023 Sean Kerr
 # --------------------------------------------------------------------------------------
 
-# postgres-lock imports
-from postgres_lock.psycopg2 import acquire
-from postgres_lock.psycopg2 import acquire_async
-from postgres_lock.psycopg2 import handle_error
-from postgres_lock.psycopg2 import handle_error_async
-from postgres_lock.psycopg2 import release
-from postgres_lock.psycopg2 import release_async
+# postgresql-lock imports
+from postgresql_lock.psycopg2 import acquire
+from postgresql_lock.psycopg2 import acquire_async
+from postgresql_lock.psycopg2 import handle_error
+from postgresql_lock.psycopg2 import handle_error_async
+from postgresql_lock.psycopg2 import release
+from postgresql_lock.psycopg2 import release_async
 
 # system imports
+from typing import Any
+
 from unittest.mock import Mock
 
 # dependency imports
@@ -19,7 +21,7 @@ from pytest import raises
 
 
 @mark.parametrize("result", [None, True, False])
-def test_acquire__defaults(result):
+def test_acquire__defaults(result: Any) -> None:
     cursor = Mock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
@@ -41,7 +43,7 @@ def test_acquire__defaults(result):
 
 
 @mark.parametrize("result", [None, True, False])
-def test_acquire__block_false(result):
+def test_acquire__block_false(result: Any) -> None:
     cursor = Mock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
@@ -62,7 +64,7 @@ def test_acquire__block_false(result):
 
 
 @mark.parametrize("result", [None, True, False])
-def test_acquire__block_true(result):
+def test_acquire__block_true(result: Any) -> None:
     cursor = Mock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
@@ -84,37 +86,37 @@ def test_acquire__block_true(result):
 
 
 @mark.asyncio
-async def test_acquire_async():
+async def test_acquire_async() -> None:
     with raises(NotImplementedError) as exc:
-        await acquire_async(None)
+        await acquire_async(Mock())
 
     assert str(exc.value) == "psycopg2 interface does not support acquire_async()"
 
 
-def test_handle_error():
+def test_handle_error() -> None:
     lock = Mock()
 
-    handle_error(lock, None)
+    handle_error(lock, Mock())
 
     lock.conn.rollback.assert_called_once()
 
 
-def test_handle_error__rollback_disabled():
+def test_handle_error__rollback_disabled() -> None:
     lock = Mock(rollback_on_error=False)
 
-    handle_error(lock, None)
+    handle_error(lock, Mock())
 
 
 @mark.asyncio
-async def test_handle_error_async():
+async def test_handle_error_async() -> None:
     with raises(NotImplementedError) as exc:
-        await handle_error_async(None, None)
+        await handle_error_async(Mock(), Mock())
 
     assert str(exc.value) == "psycopg2 interface does not support handle_error_async()"
 
 
 @mark.parametrize("result", [True, False])
-def test_release(result):
+def test_release(result: Any) -> None:
     cursor = Mock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
@@ -130,8 +132,8 @@ def test_release(result):
 
 
 @mark.asyncio
-async def test_release_async():
+async def test_release_async() -> None:
     with raises(NotImplementedError) as exc:
-        await release_async(None)
+        await release_async(Mock())
 
     assert str(exc.value) == "psycopg2 interface does not support release_async()"

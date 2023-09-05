@@ -2,9 +2,9 @@
 # Copyright (c) 2023 Sean Kerr
 # --------------------------------------------------------------------------------------
 
-# postgres-lock imports
-import postgres_lock
+# postgresql-lock imports
+import postgresql_lock
 
 
-def test__all__():
-    assert postgres_lock.__all__ == ["Lock"]
+def test__all__() -> None:
+    assert postgresql_lock.__all__ == ["Lock"]
