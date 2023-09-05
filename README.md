@@ -1,6 +1,6 @@
 ## postgresql-lock
 
-Lock mechanism implemented with Postgres advisory locks.
+Lock mechanism implemented with PostgreSQL advisory locks.
 
 Easily implement distributed database locking.
 
@@ -25,10 +25,10 @@ pip install postgresql-lock
 
 ### Why would I use this?
 
-- Postgres table locks aren't sufficient for your use-case
-- Postgres row locks don't work on `INSERT`
+- PostgreSQL table locks aren't sufficient for your use-case
+- PostgreSQL row locks don't work on `INSERT`
 - You want to prevent race conditions between `INSERT` and `UPDATE` on the same primary key
-- None of the aforementioned details fit your use-case, but you have Postgres installed and need to prevent race conditions in a distributed system
+- None of the aforementioned details fit your use-case, but you have PostgreSQL installed and need to prevent race conditions in a distributed system
 
 ### Default operation
 
