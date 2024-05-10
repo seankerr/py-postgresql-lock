@@ -57,7 +57,7 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     await cursor.execute(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
 
     result, *_ = await cursor.fetchone()
-    cursor.close()
+    await cursor.close()
 
     # lock function returns True/False in unblocking mode, and always None in blocking
     # mode
@@ -123,6 +123,6 @@ async def release_async(lock: Lock) -> bool:
     await cursor.execute(f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})")
 
     result, *_ = await cursor.fetchone()
-    cursor.close()
+    await cursor.close()
 
     return result
