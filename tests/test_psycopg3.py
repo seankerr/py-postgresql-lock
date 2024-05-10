@@ -89,7 +89,7 @@ def test_acquire__block_true(result: Any) -> None:
 @mark.asyncio
 @mark.parametrize("result", [None, True, False])
 async def test_acquire_async__defaults(result: Any) -> None:
-    cursor = Mock()
+    cursor = AsyncMock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
     cursor.execute = AsyncMock()
@@ -113,7 +113,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
 @mark.asyncio
 @mark.parametrize("result", [None, True, False])
 async def test_acquire_async__block_false(result: Any) -> None:
-    cursor = Mock()
+    cursor = AsyncMock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
     cursor.execute = AsyncMock()
@@ -137,7 +137,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
 @mark.asyncio
 @mark.parametrize("result", [None, True, False])
 async def test_acquire_async__block_true(result: Any) -> None:
-    cursor = Mock()
+    cursor = AsyncMock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
     cursor.execute = AsyncMock()
@@ -208,7 +208,7 @@ def test_release(result: Any) -> None:
 @mark.asyncio
 @mark.parametrize("result", [True, False])
 async def test_release_async(result: Any) -> None:
-    cursor = Mock()
+    cursor = AsyncMock()
     lock = Mock()
     lock.conn.cursor.return_value = cursor
     cursor.execute = AsyncMock()
