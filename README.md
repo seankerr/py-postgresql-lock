@@ -175,6 +175,9 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.6**
+  - Use int.from_bytes() to convert lock key into integer
+  - Fix: psygopg3 close() not being awaited bug
 - **0.1.5**
   - Rename package from postgres-lock to postgresql-lock
 - **0.1.4**
