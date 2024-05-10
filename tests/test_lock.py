@@ -40,18 +40,19 @@ def test___init___defaults(
 
     str().encode.assert_called_with("utf-8")
     hashlib.sha1.assert_called_with(str().encode())
-    hashlib.sha1().hexdigest.assert_called_once()
+    hashlib.sha1().digest.assert_called_once()
 
-    call_args = int.call_args_list
-
-    assert call_args[0] == call(hashlib.sha1().hexdigest(), 16)
-    assert call_args[1] == call(str()[:18])
+    int.from_bytes.assert_called_with(
+        hashlib.sha1().digest()[:8],
+        byteorder="big",
+        signed=True,
+    )
 
     assert lock.conn == conn
     assert lock.interface == "auto"
     assert lock.impl == _load_impl()
     assert lock.key == key
-    assert lock.lock_id == int()
+    assert lock.lock_id == int.from_bytes()
     assert lock.rollback_on_error
     assert lock.scope == "session"
     assert not lock._locked

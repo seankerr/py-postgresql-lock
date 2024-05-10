@@ -95,8 +95,10 @@ class Lock:
         self.interface = interface
         self.impl = self._load_impl()
         self.key = key
-        self.lock_id = int(
-            str(int(hashlib.sha1(str(key).encode("utf-8")).hexdigest(), 16))[:18]
+        self.lock_id = int.from_bytes(
+            hashlib.sha1(str(key).encode("utf-8")).digest()[:8],
+            byteorder="big",
+            signed=True,
         )
         self.rollback_on_error = rollback_on_error
         self.scope = scope
