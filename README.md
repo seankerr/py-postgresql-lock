@@ -175,6 +175,8 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.7**
+  - Add logging statements
 - **0.1.6**
   - Use int.from_bytes() to convert lock key into integer
   - Fix: psycopg3 close() not being awaited bug
