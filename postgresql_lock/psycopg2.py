@@ -8,10 +8,7 @@ Lock support for psycopg2 database interface.
 
 # postgresql-lock imports
 from .lock import Lock
-from .lock import _LOGGER_KEY_
-
-# system imports
-import logging
+from .lock import logger
 
 
 def acquire(lock: Lock, block: bool = True) -> bool:
@@ -32,9 +29,7 @@ def acquire(lock: Lock, block: bool = True) -> bool:
 
     lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Acquire statement for key: %s, %s", lock.key, lock_stmt
-    )
+    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
 
     cursor = lock.conn.cursor()
     cursor.execute(lock_stmt)
@@ -97,9 +92,7 @@ def release(lock: Lock) -> bool:
     """
     unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Release statement for key: %s, %s", lock.key, unlock_stmt
-    )
+    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
 
     cursor = lock.conn.cursor()
     cursor.execute(unlock_stmt)

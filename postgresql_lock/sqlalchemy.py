@@ -8,10 +8,7 @@ Lock support for sqlalchemy database interface.
 
 # postgresql-lock imports
 from .lock import Lock
-from .lock import _LOGGER_KEY_
-
-# system imports
-import logging
+from .lock import logger
 
 # dependency imports
 from sqlalchemy import text
@@ -35,9 +32,7 @@ def acquire(lock: Lock, block: bool = True) -> bool:
 
     lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Acquire statement for key: %s, %s", lock.key, lock_stmt
-    )
+    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
 
     result = lock.conn.execute(text(lock_stmt)).scalar()
 
@@ -64,9 +59,7 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
 
     lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Acquire statement for key: %s, %s", lock.key, lock_stmt
-    )
+    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
 
     result = (await lock.conn.execute(text(lock_stmt))).scalar()
 
@@ -113,9 +106,7 @@ def release(lock: Lock) -> bool:
     """
     unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Release statement for key: %s, %s", lock.key, unlock_stmt
-    )
+    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
 
     return lock.conn.execute(text(unlock_stmt)).scalar()
 
@@ -132,8 +123,6 @@ async def release_async(lock: Lock) -> bool:
     """
     unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
 
-    logging.getLogger(_LOGGER_KEY_).debug(
-        "Release statement for key: %s, %s", lock.key, unlock_stmt
-    )
+    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
 
     return (await lock.conn.execute(text(unlock_stmt))).scalar(0)

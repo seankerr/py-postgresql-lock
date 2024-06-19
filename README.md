@@ -175,6 +175,9 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.8**
+  - Add logger() function
+  - Use "postgresql_lock" logger name
 - **0.1.7**
   - Add logging statements
 - **0.1.6**

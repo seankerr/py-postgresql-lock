@@ -19,7 +19,9 @@ from typing import Type
 import hashlib
 import logging
 
-_LOGGER_KEY_ = "postgresql-logger"
+
+def logger() -> logging.Logger:
+    return logging.getLogger("postgresql_lock")
 
 
 class Lock:
@@ -137,14 +139,12 @@ class Lock:
                 f"Lock for '{self.key}' is already held by this {self.scope} scope"
             )
 
-        logging.getLogger(_LOGGER_KEY_).info("Acquire lock for key: %s", self.key)
+        logger().info("Acquire lock for key: %s", self.key)
 
         self._locked = self.impl.acquire(self, block=block)
         self._ref_count += 1
 
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Acquire ref count for key: %s, %d", self.key, self._ref_count
-        )
+        logger().debug("Acquire ref count for key: %s, %d", self.key, self._ref_count)
 
         return self._locked
 
@@ -163,14 +163,12 @@ class Lock:
                 f"Lock for '{self.key}' is already held by this {self.scope} scope"
             )
 
-        logging.getLogger(_LOGGER_KEY_).info("Acquire lock for key: %s", self.key)
+        logger().info("Acquire lock for key: %s", self.key)
 
         self._locked = await self.impl.acquire_async(self, block=block)
         self._ref_count += 1
 
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Ref count for key: %s, %d", self.key, self._ref_count
-        )
+        logger().debug("Ref count for key: %s, %d", self.key, self._ref_count)
 
         return self._locked
 
@@ -226,11 +224,11 @@ class Lock:
             bool: True, if the lock was released, otherwise False.
         """
         if not self._locked:
-            logging.getLogger(_LOGGER_KEY_).debug("Lock not held for key: %s", self.key)
+            logger().debug("Lock not held for key: %s", self.key)
 
             return False
 
-        logging.getLogger(_LOGGER_KEY_).info("Release lock for key: %s", self.key)
+        logger().info("Release lock for key: %s", self.key)
 
         if not self.impl.release(self):
             raise errors.ReleaseError(
@@ -240,9 +238,7 @@ class Lock:
         self._ref_count -= 1
         self._locked = self._ref_count > 0
 
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Release ref count for key: %s, %d", self.key, self._ref_count
-        )
+        logger().debug("Release ref count for key: %s, %d", self.key, self._ref_count)
 
         return not self._locked
 
@@ -260,11 +256,11 @@ class Lock:
             bool: True, if the lock was released, otherwise False.
         """
         if not self._locked:
-            logging.getLogger(_LOGGER_KEY_).debug("Lock not held for key: %s", self.key)
+            logger().debug("Lock not held for key: %s", self.key)
 
             return False
 
-        logging.getLogger(_LOGGER_KEY_).info("Release lock for key: %s", self.key)
+        logger().info("Release lock for key: %s", self.key)
 
         if not await self.impl.release_async(self):
             raise errors.ReleaseError(
@@ -274,9 +270,7 @@ class Lock:
         self._ref_count -= 1
         self._locked = self._ref_count > 0
 
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Release ref count for key: %s, %d", self.key, self._ref_count
-        )
+        logger().debug("Release ref count for key: %s, %d", self.key, self._ref_count)
 
         return not self._locked
 
@@ -294,9 +288,7 @@ class Lock:
         """
         Enter the context manager.
         """
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Enter context manager for key: %s", self.key
-        )
+        logger().debug("Enter context manager for key: %s", self.key)
 
         return await self.impl.acquire_async(self, block=True)
 
@@ -353,9 +345,7 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Exit context manager for key: %s", self.key
-        )
+        logger().debug("Exit context manager for key: %s", self.key)
 
         if exc:
             await self.impl.handle_error_async(self, exc)
@@ -369,9 +359,7 @@ class Lock:
         """
         Enter the context manager.
         """
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Enter context manager for key: %s", self.key
-        )
+        logger().debug("Enter context manager for key: %s", self.key)
 
         return self.impl.acquire(self, block=True)
 
@@ -389,9 +377,7 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
-        logging.getLogger(_LOGGER_KEY_).debug(
-            "Exit context manager for key: %s", self.key
-        )
+        logger().debug("Exit context manager for key: %s", self.key)
 
         if exc:
             self.impl.handle_error(self, exc)
