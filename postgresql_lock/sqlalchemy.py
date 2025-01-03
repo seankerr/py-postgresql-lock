@@ -125,4 +125,4 @@ async def release_async(lock: Lock) -> bool:
 
     logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
 
-    return (await lock.conn.execute(text(unlock_stmt))).scalar(0)
+    return (await lock.conn.execute(text(unlock_stmt))).scalar()

@@ -175,6 +175,8 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+- **0.1.9**
+  - Fix: release_async() bug for sqlalchemy connections
 - **0.1.8**
   - Add logger() function
   - Use "postgresql_lock" logger name
