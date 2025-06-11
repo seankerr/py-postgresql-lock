@@ -1,7 +1,6 @@
-# build
-dist
-__pycache__
 .coverage
-
-# environment
+.mypy_cache
+.pytest_cache
+.ruff_cache
 .venv
+__pycache__
