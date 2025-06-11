@@ -1,7 +1,3 @@
-# --------------------------------------------------------------------------------------
-# Copyright (c) 2023 Sean Kerr
-# --------------------------------------------------------------------------------------
-
 # postgresql-lock imports
 from postgresql_lock import Lock
 from postgresql_lock import errors

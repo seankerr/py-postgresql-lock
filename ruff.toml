@@ -1,0 +1,5 @@
+[lint]
+ignore = ["E402"]
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
