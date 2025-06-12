@@ -30,7 +30,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert await acquire_async(lock)
@@ -42,7 +42,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
         assert not await acquire_async(lock)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
     )
 
 
@@ -52,7 +52,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
-    lock_func = lock.nonblocking_lock_func
+    lock_func = lock._nonblocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=False)
@@ -64,7 +64,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
         assert not await acquire_async(lock, block=False)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
     )
 
 
@@ -74,7 +74,7 @@ async def test_acquire_async__block_true(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=True)
@@ -86,7 +86,7 @@ async def test_acquire_async__block_true(result: Any) -> None:
         assert not await acquire_async(lock, block=True)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
     )
 
 
@@ -107,7 +107,7 @@ async def test_handle_error_async() -> None:
 
 @mark.asyncio
 async def test_handle_error_async__rollback_disabled() -> None:
-    lock = Mock(rollback_on_error=False)
+    lock = Mock(_rollback_on_error=False)
 
     await handle_error_async(lock, Mock())
 
@@ -127,5 +127,5 @@ async def test_release_async() -> None:
     assert lock.conn.fetchval.return_value == await release_async(lock)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
     )

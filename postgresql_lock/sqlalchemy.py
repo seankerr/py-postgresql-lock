@@ -21,14 +21,14 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     Returns:
         bool: True, if the lock was acquired, otherwise False.
     """
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if not block:
-        lock_func = lock.nonblocking_lock_func
+        lock_func = lock._nonblocking_lock_func
 
-    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
 
-    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
+    logger().debug("Acquire statement for key: %s, %s", lock._key, lock_stmt)
 
     result = lock.conn.execute(text(lock_stmt)).scalar()
 
@@ -48,14 +48,14 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     Returns:
         bool: True, if the lock was acquired, otherwise False.
     """
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if not block:
-        lock_func = lock.nonblocking_lock_func
+        lock_func = lock._nonblocking_lock_func
 
-    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
+    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
 
-    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
+    logger().debug("Acquire statement for key: %s, %s", lock._key, lock_stmt)
 
     result = (await lock.conn.execute(text(lock_stmt))).scalar()
 
@@ -71,7 +71,7 @@ def handle_error(lock: Lock, exc: BaseException) -> None:
     Parameters:
         exc (Exception): Exception.
     """
-    if not lock.rollback_on_error:
+    if not lock._rollback_on_error:
         return
 
     lock.conn.rollback()
@@ -84,7 +84,7 @@ async def handle_error_async(lock: Lock, exc: BaseException) -> None:
     Parameters:
         exc (Exception): Exception.
     """
-    if not lock.rollback_on_error:
+    if not lock._rollback_on_error:
         return
 
     await lock.conn.rollback()
@@ -100,9 +100,9 @@ def release(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+    unlock_stmt = f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
 
-    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
+    logger().debug("Release statement for key: %s, %s", lock._key, unlock_stmt)
 
     return lock.conn.execute(text(unlock_stmt)).scalar()
 
@@ -117,8 +117,8 @@ async def release_async(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+    unlock_stmt = f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
 
-    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
+    logger().debug("Release statement for key: %s, %s", lock._key, unlock_stmt)
 
     return (await lock.conn.execute(text(unlock_stmt))).scalar()

@@ -44,43 +44,43 @@ def test___init___defaults(
         signed=True,
     )
 
-    assert lock.conn == conn
-    assert lock.interface == "auto"
+    assert lock._conn == conn
+    assert lock._interface == "auto"
     assert lock.impl == _load_impl()
-    assert lock.key == key
-    assert lock.lock_id == int.from_bytes()
-    assert lock.rollback_on_error
-    assert lock.scope == "session"
+    assert lock._key == key
+    assert lock._lock_id == int.from_bytes()
+    assert lock._rollback_on_error
+    assert lock._scope == "session"
     assert not lock._locked
     assert lock._ref_count == 0
     assert not lock._shared
 
-    assert lock.blocking_lock_func == "pg_advisory_lock"
-    assert lock.nonblocking_lock_func == "pg_try_advisory_lock"
-    assert lock.unlock_func == "pg_advisory_unlock"
+    assert lock._blocking_lock_func == "pg_advisory_lock"
+    assert lock._nonblocking_lock_func == "pg_try_advisory_lock"
+    assert lock._unlock_func == "pg_advisory_unlock"
 
 
 @patch(f"{PATH}.Lock._load_impl")
 def test___init___rollback_on_error_false(_load_impl: Mock) -> None:
     lock = Lock(None, "key", rollback_on_error=False)
 
-    assert not lock.rollback_on_error
+    assert not lock._rollback_on_error
 
 
 @patch(f"{PATH}.Lock._load_impl")
 def test___init___rollback_on_error_true(_load_impl: Mock) -> None:
     lock = Lock(None, "key", rollback_on_error=True)
 
-    assert lock.rollback_on_error
+    assert lock._rollback_on_error
 
 
 @patch(f"{PATH}.Lock._load_impl")
 def test___init___session(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="session")
 
-    assert lock.blocking_lock_func == "pg_advisory_lock"
-    assert lock.nonblocking_lock_func == "pg_try_advisory_lock"
-    assert lock.unlock_func == "pg_advisory_unlock"
+    assert lock._blocking_lock_func == "pg_advisory_lock"
+    assert lock._nonblocking_lock_func == "pg_try_advisory_lock"
+    assert lock._unlock_func == "pg_advisory_unlock"
 
 
 @patch(f"{PATH}.Lock._load_impl")
@@ -89,18 +89,18 @@ def test___init___session_shared(_load_impl: Mock) -> None:
 
     assert lock._shared
 
-    assert lock.blocking_lock_func == "pg_advisory_lock_shared"
-    assert lock.nonblocking_lock_func == "pg_try_advisory_lock_shared"
-    assert lock.unlock_func == "pg_advisory_unlock_shared"
+    assert lock._blocking_lock_func == "pg_advisory_lock_shared"
+    assert lock._nonblocking_lock_func == "pg_try_advisory_lock_shared"
+    assert lock._unlock_func == "pg_advisory_unlock_shared"
 
 
 @patch(f"{PATH}.Lock._load_impl")
 def test___init___transaction(_load_impl: Mock) -> None:
     lock = Lock(None, "key", scope="transaction")
 
-    assert lock.blocking_lock_func == "pg_advisory_xact_lock"
-    assert lock.nonblocking_lock_func == "pg_try_advisory_xact_lock"
-    assert lock.unlock_func == "pg_advisory_unlock"
+    assert lock._blocking_lock_func == "pg_advisory_xact_lock"
+    assert lock._nonblocking_lock_func == "pg_try_advisory_xact_lock"
+    assert lock._unlock_func == "pg_advisory_unlock"
 
 
 @patch(f"{PATH}.Lock._load_impl")
@@ -109,9 +109,9 @@ def test___init___transaction_shared(_load_impl: Mock) -> None:
 
     assert lock._shared
 
-    assert lock.blocking_lock_func == "pg_advisory_xact_lock_shared"
-    assert lock.nonblocking_lock_func == "pg_try_advisory_xact_lock_shared"
-    assert lock.unlock_func == "pg_advisory_unlock_shared"
+    assert lock._blocking_lock_func == "pg_advisory_xact_lock_shared"
+    assert lock._nonblocking_lock_func == "pg_try_advisory_xact_lock_shared"
+    assert lock._unlock_func == "pg_advisory_unlock_shared"
 
 
 @patch(f"{PATH}.Lock._load_impl")
@@ -149,7 +149,7 @@ def test_acquire__locked_not_shared(_load_impl: Mock) -> None:
 
     assert (
         str(exc.value)
-        == f"Lock for '{lock.key}' is already held by this {lock.scope} scope"
+        == f"Lock for '{lock._key}' is already held by this {lock._scope} scope"
     )
 
 
@@ -195,7 +195,7 @@ async def test_acquire_async__locked_not_shared(_load_impl: Mock) -> None:
 
     assert (
         str(exc.value)
-        == f"Lock for '{lock.key}' is already held by this {lock.scope} scope"
+        == f"Lock for '{lock._key}' is already held by this {lock._scope} scope"
     )
 
 
@@ -333,7 +333,7 @@ def test_release__not_released(_load_impl: Mock) -> None:
     assert lock._ref_count == 1
     assert (
         str(exc.value)
-        == f"Lock for '{lock.key}' was not held by this {lock.scope} scope"
+        == f"Lock for '{lock._key}' was not held by this {lock._scope} scope"
     )
 
 
@@ -372,7 +372,7 @@ async def test_release_async__not_released(_load_impl: Mock) -> None:
     assert lock._ref_count == 1
     assert (
         str(exc.value)
-        == f"Lock for '{lock.key}' was not held by this {lock.scope} scope"
+        == f"Lock for '{lock._key}' was not held by this {lock._scope} scope"
     )
 
 
@@ -384,9 +384,9 @@ def test_shared(_load_impl: Mock) -> None:
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__detect_interface__asyncpg(import_module: Mock) -> None:
-    conn = Mock()
-    conn.__class__.__module__ = "asyncpg."
-    lock = Mock(conn=conn, interface="auto")
+    _conn = Mock()
+    _conn.__class__.__module__ = "asyncpg."
+    lock = Mock(_conn=_conn, _interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
@@ -395,9 +395,9 @@ def test__load_impl__detect_interface__asyncpg(import_module: Mock) -> None:
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__detect_interface__psycopg3(import_module: Mock) -> None:
-    conn = Mock()
-    conn.__class__.__module__ = "psycopg"
-    lock = Mock(conn=conn, interface="auto")
+    _conn = Mock()
+    _conn.__class__.__module__ = "psycopg"
+    lock = Mock(_conn=_conn, _interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
@@ -406,9 +406,9 @@ def test__load_impl__detect_interface__psycopg3(import_module: Mock) -> None:
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__detect_interface__psycopg2(import_module: Mock) -> None:
-    conn = Mock()
-    conn.__class__.__module__ = "psycopg2."
-    lock = Mock(conn=conn, interface="auto")
+    _conn = Mock()
+    _conn.__class__.__module__ = "psycopg2."
+    lock = Mock(_conn=_conn, _interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
@@ -417,9 +417,9 @@ def test__load_impl__detect_interface__psycopg2(import_module: Mock) -> None:
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__detect_interface__sqlalchemy(import_module: Mock) -> None:
-    conn = Mock()
-    conn.__class__.__module__ = "sqlalchemy"
-    lock = Mock(conn=conn, interface="auto")
+    _conn = Mock()
+    _conn.__class__.__module__ = "sqlalchemy"
+    lock = Mock(_conn=_conn, _interface="auto")
 
     assert import_module.return_value == Lock._load_impl(lock)
 
@@ -429,7 +429,7 @@ def test__load_impl__detect_interface__sqlalchemy(import_module: Mock) -> None:
 @patch(f"{PATH}.import_module")
 def test__load_impl__detect_interface__unsupported(import_module: Mock) -> None:
     conn = Mock()
-    lock = Mock(conn=conn, interface="auto")
+    lock = Mock(conn=conn, _interface="auto")
 
     with raises(errors.UnsupportedInterfaceError) as exc:
         assert import_module.return_value == Lock._load_impl(lock)
@@ -443,24 +443,24 @@ def test__load_impl__detect_interface__unsupported(import_module: Mock) -> None:
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__specify_interface(import_module: Mock) -> None:
-    conn = Mock()
-    interface = Mock()
-    lock = Mock(conn=conn, interface=interface)
+    _conn = Mock()
+    _interface = Mock()
+    lock = Mock(_conn=_conn, interface=_interface)
 
     assert import_module.return_value == Lock._load_impl(lock)
 
-    import_module.assert_called_with(f".{lock.interface}", package="postgresql_lock")
+    import_module.assert_called_with(f".{lock._interface}", package="postgresql_lock")
 
 
 @patch(f"{PATH}.import_module")
 def test__load_impl__specify_interface__module_not_found(import_module: Mock) -> None:
-    conn = Mock()
-    interface = Mock()
-    lock = Mock(conn=conn, interface=interface)
+    _conn = Mock()
+    _interface = Mock()
+    lock = Mock(_conn=_conn, _interface=_interface)
 
     import_module.side_effect = ModuleNotFoundError()
 
     with raises(errors.UnsupportedInterfaceError) as exc:
         Lock._load_impl(lock)
 
-    assert str(exc.value) == f"Unsupported database interface '{lock.interface}'"
+    assert str(exc.value) == f"Unsupported database interface '{lock._interface}'"

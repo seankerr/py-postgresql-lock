@@ -20,6 +20,10 @@ def logger() -> logging.Logger:
     return logging.getLogger("postgresql_lock")
 
 
+type Interface = Literal["auto", "asyncpg", "psycopg2", "psycopg3", "sqlalchemy"]
+type Scope = Literal["session", "transaction"]
+
+
 class Lock:
     """
     Lock mechanism implemented with PostgreSQL advisory locks.
@@ -51,140 +55,58 @@ class Lock:
     Sharing (locks can or cannot be reacquired from the same scope)
     """
 
-    conn: Any
-    interface: str
-    key: Any
-    lock_id: int
-    rollback_on_error: bool
-    scope: str
+    _blocking_lock_func: str
+    _conn: Any
+    _interface: Interface
+    _key: Any
+    _lock_id: int
+    _nonblocking_lock_func: str
     _locked: bool
     _ref_count: int
+    _rollback_on_error: bool
+    _scope: Scope
     _shared: bool
+    _unlock_func: str
 
-    blocking_lock_func: str
-    nonblocking_lock_func: str
-    unlock_func: str
-
-    def __init__(
-        self,
-        conn: Any,
-        key: Any,
-        interface: Literal[
-            "auto",
-            "asyncpg",
-            "psycopg2",
-            "psycopg3",
-            "sqlalchemy",
-        ] = "auto",
-        rollback_on_error: bool = True,
-        scope: Literal["session", "transaction"] = "session",
-        shared: bool = False,
-    ):
+    @property
+    def conn(self) -> Any:
         """
-        Create a new Lock instance.
-
-        Parameters:
-            conn (object): Database connection.
-            key (object): Unique lock key.
-            interface (str): Database interface.
-            rollback_on_error (bool): Rollback if an error occurs while in a `with`
-                statement.
-            scope (str): Lock scope.
-            shared (bool): Use a shared lock.
-        """
-        self.conn = conn
-        self.interface = interface
-        self.impl = self._load_impl()
-        self.key = key
-        self.lock_id = int.from_bytes(
-            hashlib.sha1(str(key).encode("utf-8")).digest()[:8],
-            byteorder="big",
-            signed=True,
-        )
-        self.rollback_on_error = rollback_on_error
-        self.scope = scope
-        self._locked = False
-        self._ref_count = 0
-        self._shared = shared
-
-        infix = "_xact"
-        suffix = ""
-
-        if scope == "session":
-            infix = ""
-
-        if shared:
-            suffix = "_shared"
-
-        self.blocking_lock_func = f"pg_advisory{infix}_lock{suffix}"
-        self.nonblocking_lock_func = f"pg_try_advisory{infix}_lock{suffix}"
-        self.unlock_func = f"pg_advisory_unlock{suffix}"
-
-    def acquire(self, block: bool = True) -> bool:
-        """
-        Acquire the lock.
-
-        Parameters:
-            block (bool): Return only once the lock has been acquired.
+        Returns the database connection.
 
         Returns:
-            bool: True, if the lock was acquired, otherwise False.
+            object: Database connection.
         """
-        if self._locked and not self._shared:
-            raise errors.AcquireError(
-                f"Lock for '{self.key}' is already held by this {self.scope} scope"
-            )
+        return self._conn
 
-        logger().info("Acquire lock for key: %s", self.key)
-
-        self._locked = self.impl.acquire(self, block=block)
-        self._ref_count += 1
-
-        logger().debug("Acquire ref count for key: %s, %d", self.key, self._ref_count)
-
-        return self._locked
-
-    async def acquire_async(self, block: bool = True) -> bool:
+    @property
+    def interface(self) -> Interface:
         """
-        Acquire the lock asynchronously.
-
-        Parameters:
-            block (bool): Return only once the lock has been acquired.
+        Returns the database interface.
 
         Returns:
-            bool: True, if the lock was acquired, otherwise False.
+            str: Database interface.
         """
-        if self._locked and not self._shared:
-            raise errors.AcquireError(
-                f"Lock for '{self.key}' is already held by this {self.scope} scope"
-            )
+        return self._interface
 
-        logger().info("Acquire lock for key: %s", self.key)
-
-        self._locked = await self.impl.acquire_async(self, block=block)
-        self._ref_count += 1
-
-        logger().debug("Ref count for key: %s, %d", self.key, self._ref_count)
-
-        return self._locked
-
-    def handle_error(self, exc: BaseException) -> None:
+    @property
+    def key(self) -> Any:
         """
-        Handle an error.
+        Returns the unique lock key.
 
-        Parameters:
-            exc (Exception): Exception.
+        Returns:
+            object: Unique lock key.
         """
-        return self.impl.handle_error(self, exc)
+        return self._key
 
-    async def handle_error_async(self, exc: BaseException) -> None:
+    @property
+    def lock_id(self) -> int:
         """
-        Handle an error asynchronously.
+        Returns the lock ID.
 
-        Parameters:
-            exc (Exception): Exception.
+        Returns:
+            int: Lock ID.
         """
-        return await self.impl.handle_error_async(self, exc)
+        return self._lock_id
 
     @property
     def locked(self) -> bool:
@@ -206,6 +128,151 @@ class Lock:
         """
         return self._ref_count
 
+    @property
+    def rollback_on_error(self) -> bool:
+        """
+        Returns the rollback on error status.
+
+        Returns:
+            bool: Rollback on error status.
+        """
+        return self._rollback_on_error
+
+    @property
+    def scope(self) -> Scope:
+        """
+        Returns the lock scope.
+
+        Returns:
+            str: Lock scope.
+        """
+        return self._scope
+
+    @property
+    def shared(self) -> bool:
+        """
+        Returns the shared status.
+
+        Returns:
+            bool: Shared status.
+        """
+        return self._shared
+
+    def __init__(
+        self,
+        conn: Any,
+        key: Any,
+        interface: Interface = "auto",
+        rollback_on_error: bool = True,
+        scope: Scope = "session",
+        shared: bool = False,
+    ):
+        """
+        Create a new Lock instance.
+
+        Parameters:
+            conn (object): Database connection.
+            key (object): Unique lock key.
+            interface (str): Database interface.
+            rollback_on_error (bool): Rollback if an error occurs while in a `with`
+                statement.
+            scope (str): Lock scope.
+            shared (bool): Use a shared lock.
+        """
+        self._conn = conn
+        self._interface = interface
+        self.impl = self._load_impl()
+        self._key = key
+        self._lock_id = int.from_bytes(
+            hashlib.sha1(str(key).encode("utf-8")).digest()[:8],
+            byteorder="big",
+            signed=True,
+        )
+        self._rollback_on_error = rollback_on_error
+        self._scope = scope
+        self._locked = False
+        self._ref_count = 0
+        self._shared = shared
+
+        infix = "_xact"
+        suffix = ""
+
+        if scope == "session":
+            infix = ""
+
+        if shared:
+            suffix = "_shared"
+
+        self._blocking_lock_func = f"pg_advisory{infix}_lock{suffix}"
+        self._nonblocking_lock_func = f"pg_try_advisory{infix}_lock{suffix}"
+        self._unlock_func = f"pg_advisory_unlock{suffix}"
+
+    def acquire(self, block: bool = True) -> bool:
+        """
+        Acquire the lock.
+
+        Parameters:
+            block (bool): Return only once the lock has been acquired.
+
+        Returns:
+            bool: True, if the lock was acquired, otherwise False.
+        """
+        if self._locked and not self._shared:
+            raise errors.AcquireError(
+                f"Lock for '{self._key}' is already held by this {self._scope} scope"
+            )
+
+        logger().info("Acquire lock for key: %s", self._key)
+
+        self._locked = self.impl.acquire(self, block=block)
+        self._ref_count += 1
+
+        logger().debug("Acquire ref count for key: %s, %d", self._key, self._ref_count)
+
+        return self._locked
+
+    async def acquire_async(self, block: bool = True) -> bool:
+        """
+        Acquire the lock asynchronously.
+
+        Parameters:
+            block (bool): Return only once the lock has been acquired.
+
+        Returns:
+            bool: True, if the lock was acquired, otherwise False.
+        """
+        if self._locked and not self._shared:
+            raise errors.AcquireError(
+                f"Lock for '{self._key}' is already held by this {self._scope} scope"
+            )
+
+        logger().info("Acquire lock for key: %s", self._key)
+
+        self._locked = await self.impl.acquire_async(self, block=block)
+        self._ref_count += 1
+
+        logger().debug("Ref count for key: %s, %d", self._key, self._ref_count)
+
+        return self._locked
+
+    def handle_error(self, exc: BaseException) -> None:
+        """
+        Handle an error.
+
+        Parameters:
+            exc (Exception): Exception.
+        """
+        return self.impl.handle_error(self, exc)
+
+    async def handle_error_async(self, exc: BaseException) -> None:
+        """
+        Handle an error asynchronously.
+
+        Parameters:
+            exc (Exception): Exception.
+        """
+        return await self.impl.handle_error_async(self, exc)
+
     def release(self) -> bool:
         """
         Release the lock.
@@ -220,21 +287,21 @@ class Lock:
             bool: True, if the lock was released, otherwise False.
         """
         if not self._locked:
-            logger().debug("Lock not held for key: %s", self.key)
+            logger().debug("Lock not held for key: %s", self._key)
 
             return False
 
-        logger().info("Release lock for key: %s", self.key)
+        logger().info("Release lock for key: %s", self._key)
 
         if not self.impl.release(self):
             raise errors.ReleaseError(
-                f"Lock for '{self.key}' was not held by this {self.scope} scope"
+                f"Lock for '{self._key}' was not held by this {self._scope} scope"
             )
 
         self._ref_count -= 1
         self._locked = self._ref_count > 0
 
-        logger().debug("Release ref count for key: %s, %d", self.key, self._ref_count)
+        logger().debug("Release ref count for key: %s, %d", self._key, self._ref_count)
 
         return not self._locked
 
@@ -252,39 +319,29 @@ class Lock:
             bool: True, if the lock was released, otherwise False.
         """
         if not self._locked:
-            logger().debug("Lock not held for key: %s", self.key)
+            logger().debug("Lock not held for key: %s", self._key)
 
             return False
 
-        logger().info("Release lock for key: %s", self.key)
+        logger().info("Release lock for key: %s", self._key)
 
         if not await self.impl.release_async(self):
             raise errors.ReleaseError(
-                f"Lock for '{self.key}' was not held by this {self.scope} scope"
+                f"Lock for '{self._key}' was not held by this {self._scope} scope"
             )
 
         self._ref_count -= 1
         self._locked = self._ref_count > 0
 
-        logger().debug("Release ref count for key: %s, %d", self.key, self._ref_count)
+        logger().debug("Release ref count for key: %s, %d", self._key, self._ref_count)
 
         return not self._locked
-
-    @property
-    def shared(self) -> bool:
-        """
-        Returns the shared status.
-
-        Returns:
-            bool: Shared status.
-        """
-        return self._shared
 
     async def __aenter__(self) -> bool:
         """
         Enter the context manager.
         """
-        logger().debug("Enter context manager for key: %s", self.key)
+        logger().debug("Enter context manager for key: %s", self._key)
 
         return await self.impl.acquire_async(self, block=True)
 
@@ -295,8 +352,8 @@ class Lock:
         Raises:
             errors.UnsupportedInterfaceError: The database interface is unsupported.
         """
-        module = self.conn.__class__.__module__
-        interface = self.interface
+        module = self._conn.__class__.__module__
+        interface = self._interface
 
         if interface == "auto":
             if module == "psycopg":
@@ -317,7 +374,7 @@ class Lock:
                     + "try specifying it with the interface keyword"
                 )
 
-        self.interface = interface
+        self._interface = interface
 
         try:
             return import_module(f".{interface}", package="postgresql_lock")
@@ -341,7 +398,7 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
-        logger().debug("Exit context manager for key: %s", self.key)
+        logger().debug("Exit context manager for key: %s", self._key)
 
         if exc:
             await self.impl.handle_error_async(self, exc)
@@ -355,7 +412,7 @@ class Lock:
         """
         Enter the context manager.
         """
-        logger().debug("Enter context manager for key: %s", self.key)
+        logger().debug("Enter context manager for key: %s", self._key)
 
         return self.impl.acquire(self, block=True)
 
@@ -373,7 +430,7 @@ class Lock:
             Exception (BaseException): Exception that was raised.
             Traceback (TracebackType): Traceback.
         """
-        logger().debug("Exit context manager for key: %s", self.key)
+        logger().debug("Exit context manager for key: %s", self._key)
 
         if exc:
             self.impl.handle_error(self, exc)

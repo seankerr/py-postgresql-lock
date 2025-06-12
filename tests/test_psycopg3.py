@@ -23,7 +23,7 @@ def test_acquire__defaults(result: Any) -> None:
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert acquire(lock)
@@ -34,7 +34,7 @@ def test_acquire__defaults(result: Any) -> None:
     elif result is False:
         assert not acquire(lock)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -45,7 +45,7 @@ def test_acquire__block_false(result: Any) -> None:
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
 
-    lock_func = lock.nonblocking_lock_func
+    lock_func = lock._nonblocking_lock_func
 
     if result is True:
         assert acquire(lock, block=False)
@@ -56,7 +56,7 @@ def test_acquire__block_false(result: Any) -> None:
     elif result is False:
         assert not acquire(lock, block=False)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -67,7 +67,7 @@ def test_acquire__block_true(result: Any) -> None:
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert acquire(lock, block=True)
@@ -78,7 +78,7 @@ def test_acquire__block_true(result: Any) -> None:
     elif result is False:
         assert not acquire(lock, block=True)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -91,7 +91,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
     cursor.execute = AsyncMock()
     cursor.fetchone = AsyncMock(return_value=[result])
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert await acquire_async(lock)
@@ -102,7 +102,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -115,7 +115,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
     cursor.execute = AsyncMock()
     cursor.fetchone = AsyncMock(return_value=[result])
 
-    lock_func = lock.nonblocking_lock_func
+    lock_func = lock._nonblocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=False)
@@ -126,7 +126,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock, block=False)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -139,7 +139,7 @@ async def test_acquire_async__block_true(result: Any) -> None:
     cursor.execute = AsyncMock()
     cursor.fetchone = AsyncMock(return_value=[result])
 
-    lock_func = lock.blocking_lock_func
+    lock_func = lock._blocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=True)
@@ -150,7 +150,7 @@ async def test_acquire_async__block_true(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock, block=True)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock._lock_id})")
     cursor.close.assert_called_once()
 
 
@@ -180,7 +180,7 @@ async def test_handle_error_async() -> None:
 
 @mark.asyncio
 async def test_handle_error_async__rollback_disabled() -> None:
-    lock = Mock(rollback_on_error=False)
+    lock = Mock(_rollback_on_error=False)
 
     await handle_error_async(lock, Mock())
 
@@ -196,7 +196,7 @@ def test_release(result: Any) -> None:
     assert result == release(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
     )
     cursor.close.assert_called_once()
 
@@ -213,6 +213,6 @@ async def test_release_async(result: Any) -> None:
     assert result == await release_async(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+        f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
     )
     cursor.close.assert_called_once()
