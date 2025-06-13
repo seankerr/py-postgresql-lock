@@ -57,11 +57,12 @@ class Lock:
 
     _blocking_lock_func: str
     _conn: Any
+    _impl: ModuleType
     _interface: Interface
     _key: Any
     _lock_id: int
-    _nonblocking_lock_func: str
     _locked: bool
+    _nonblocking_lock_func: str
     _ref_count: int
     _rollback_on_error: bool
     _scope: Scope
@@ -77,6 +78,16 @@ class Lock:
             object: Database connection.
         """
         return self._conn
+
+    @property
+    def impl(self) -> ModuleType:
+        """
+        Returns the implementation module.
+
+        Returns:
+            ModuleType: Implementation module.
+        """
+        return self._impl
 
     @property
     def interface(self) -> Interface:
@@ -181,7 +192,7 @@ class Lock:
         """
         self._conn = conn
         self._interface = interface
-        self.impl = self._load_impl()
+        self._impl = self._load_impl()
         self._key = key
         self._lock_id = int.from_bytes(
             hashlib.sha1(str(key).encode("utf-8")).digest()[:8],
@@ -224,7 +235,7 @@ class Lock:
 
         logger().info("Acquire lock for key: %s", self._key)
 
-        self._locked = self.impl.acquire(self, block=block)
+        self._locked = self._impl.acquire(self, block=block)
         self._ref_count += 1
 
         logger().debug("Acquire ref count for key: %s, %d", self._key, self._ref_count)
@@ -248,7 +259,7 @@ class Lock:
 
         logger().info("Acquire lock for key: %s", self._key)
 
-        self._locked = await self.impl.acquire_async(self, block=block)
+        self._locked = await self._impl.acquire_async(self, block=block)
         self._ref_count += 1
 
         logger().debug("Ref count for key: %s, %d", self._key, self._ref_count)
@@ -262,7 +273,7 @@ class Lock:
         Parameters:
             exc (Exception): Exception.
         """
-        return self.impl.handle_error(self, exc)
+        return self._impl.handle_error(self, exc)
 
     async def handle_error_async(self, exc: BaseException) -> None:
         """
@@ -271,7 +282,7 @@ class Lock:
         Parameters:
             exc (Exception): Exception.
         """
-        return await self.impl.handle_error_async(self, exc)
+        return await self._impl.handle_error_async(self, exc)
 
     def release(self) -> bool:
         """
@@ -293,7 +304,7 @@ class Lock:
 
         logger().info("Release lock for key: %s", self._key)
 
-        if not self.impl.release(self):
+        if not self._impl.release(self):
             raise errors.ReleaseError(
                 f"Lock for '{self._key}' was not held by this {self._scope} scope"
             )
@@ -325,7 +336,7 @@ class Lock:
 
         logger().info("Release lock for key: %s", self._key)
 
-        if not await self.impl.release_async(self):
+        if not await self._impl.release_async(self):
             raise errors.ReleaseError(
                 f"Lock for '{self._key}' was not held by this {self._scope} scope"
             )
@@ -343,7 +354,7 @@ class Lock:
         """
         logger().debug("Enter context manager for key: %s", self._key)
 
-        return await self.impl.acquire_async(self, block=True)
+        return await self._impl.acquire_async(self, block=True)
 
     def _load_impl(self) -> ModuleType:
         """
@@ -401,9 +412,9 @@ class Lock:
         logger().debug("Exit context manager for key: %s", self._key)
 
         if exc:
-            await self.impl.handle_error_async(self, exc)
+            await self._impl.handle_error_async(self, exc)
 
-        await self.impl.release_async(self)
+        await self._impl.release_async(self)
 
         if exc:
             raise exc
@@ -414,7 +425,7 @@ class Lock:
         """
         logger().debug("Enter context manager for key: %s", self._key)
 
-        return self.impl.acquire(self, block=True)
+        return self._impl.acquire(self, block=True)
 
     def __exit__(
         self,
@@ -433,9 +444,9 @@ class Lock:
         logger().debug("Exit context manager for key: %s", self._key)
 
         if exc:
-            self.impl.handle_error(self, exc)
+            self._impl.handle_error(self, exc)
 
-        self.impl.release(self)
+        self._impl.release(self)
 
         if exc:
             raise exc

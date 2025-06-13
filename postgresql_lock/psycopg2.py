@@ -18,12 +18,12 @@ def acquire(lock: Lock, block: bool = True) -> bool:
     Returns:
         bool: True, if the lock was acquired, otherwise False.
     """
-    lock_func = lock._blocking_lock_func
+    lock_func = lock.blocking_lock_func
 
     if not block:
-        lock_func = lock._nonblocking_lock_func
+        lock_func = lock.nonblocking_lock_func
 
-    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock._lock_id})"
+    lock_stmt = f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
 
     logger().debug("Acquire statement for key: %s, %s", lock._key, lock_stmt)
 
@@ -86,7 +86,7 @@ def release(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    unlock_stmt = f"SELECT pg_catalog.{lock._unlock_func}({lock._lock_id})"
+    unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock._lock_id})"
 
     logger().debug("Release statement for key: %s, %s", lock._key, unlock_stmt)
 
