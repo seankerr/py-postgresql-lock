@@ -32,7 +32,7 @@ def test_acquire__defaults(result: Any) -> None:
         assert not acquire(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -53,7 +53,7 @@ def test_acquire__block_false(result: Any) -> None:
         assert not acquire(lock, block=False)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
 
 
@@ -73,7 +73,7 @@ def test_acquire__block_true(result: Any) -> None:
         assert not acquire(lock, block=True)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -119,7 +119,7 @@ def test_release(result: Any) -> None:
     assert result == release(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock._lock_id})"
+        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
     )
     cursor.close.assert_called_once()
 

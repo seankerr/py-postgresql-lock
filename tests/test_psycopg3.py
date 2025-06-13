@@ -32,7 +32,7 @@ def test_acquire__defaults(result: Any) -> None:
         assert not acquire(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -53,7 +53,7 @@ def test_acquire__block_false(result: Any) -> None:
         assert not acquire(lock, block=False)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -74,7 +74,7 @@ def test_acquire__block_true(result: Any) -> None:
         assert not acquire(lock, block=True)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -97,7 +97,7 @@ async def test_acquire_async__defaults(result: Any) -> None:
         assert not await acquire_async(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -120,7 +120,7 @@ async def test_acquire_async__block_false(result: Any) -> None:
         assert not await acquire_async(lock, block=False)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -143,7 +143,7 @@ async def test_acquire_async__block_true(result: Any) -> None:
         assert not await acquire_async(lock, block=True)
 
     cursor.execute.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock._lock_id}), true)"
+        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
     )
     cursor.close.assert_called_once()
 
@@ -174,7 +174,7 @@ async def test_handle_error_async() -> None:
 
 @mark.asyncio
 async def test_handle_error_async__rollback_disabled() -> None:
-    lock = Mock(_rollback_on_error=False)
+    lock = Mock(rollback_on_error=False)
 
     await handle_error_async(lock, Mock())
 
@@ -190,7 +190,7 @@ def test_release(result: Any) -> None:
     assert result == release(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock._lock_id})"
+        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
     )
     cursor.close.assert_called_once()
 
@@ -207,6 +207,6 @@ async def test_release_async(result: Any) -> None:
     assert result == await release_async(lock)
 
     cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock._lock_id})"
+        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
     )
     cursor.close.assert_called_once()
