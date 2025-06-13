@@ -25,59 +25,68 @@ def test_acquire() -> None:
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 async def test_acquire_async__defaults(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
     lock_func = lock.blocking_lock_func
 
-    if result:
+    if result is True:
         assert await acquire_async(lock)
 
-    else:
+    elif result is None:
+        assert await acquire_async(lock)
+
+    elif result is False:
         assert not await acquire_async(lock)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
+        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
     )
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 async def test_acquire_async__block_false(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
     lock_func = lock.nonblocking_lock_func
 
-    if result:
+    if result is True:
         assert await acquire_async(lock, block=False)
 
-    else:
+    elif result is None:
+        assert await acquire_async(lock, block=False)
+
+    elif result is False:
         assert not await acquire_async(lock, block=False)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
+        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
     )
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 async def test_acquire_async__block_true(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
     lock_func = lock.blocking_lock_func
 
-    if result:
+    if result is True:
         assert await acquire_async(lock, block=True)
 
-    else:
+    elif result is None:
+        assert await acquire_async(lock, block=True)
+
+    elif result is False:
         assert not await acquire_async(lock, block=True)
 
     lock.conn.fetchval.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
+        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
     )
 
 

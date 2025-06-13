@@ -19,7 +19,7 @@ from pytest import mark
 PATH = "postgresql_lock.sqlalchemy"
 
 
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 def test_acquire__defaults(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -28,19 +28,20 @@ def test_acquire__defaults(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result:
+    if result is True:
         assert acquire(lock)
 
-    else:
+    elif result is None:
+        assert acquire(lock)
+
+    elif result is False:
         assert not acquire(lock)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 def test_acquire__block_false(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -49,19 +50,20 @@ def test_acquire__block_false(text: Mock, result: Any) -> None:
 
     lock_func = lock.nonblocking_lock_func
 
-    if result:
+    if result is True:
         assert acquire(lock, block=False)
 
-    else:
+    elif result is None:
+        assert acquire(lock, block=False)
+
+    elif result is False:
         assert not acquire(lock, block=False)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 def test_acquire__block_true(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -70,20 +72,21 @@ def test_acquire__block_true(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result:
+    if result is True:
         assert acquire(lock, block=True)
 
-    else:
+    elif result is None:
+        assert acquire(lock, block=True)
+
+    elif result is False:
         assert not acquire(lock, block=True)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 async def test_acquire_async__defaults(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -92,20 +95,21 @@ async def test_acquire_async__defaults(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result:
+    if result is True:
         assert await acquire_async(lock)
 
-    else:
+    elif result is None:
+        assert await acquire_async(lock)
+
+    elif result is False:
         assert not await acquire_async(lock)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 async def test_acquire_async__block_false(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -114,20 +118,21 @@ async def test_acquire_async__block_false(text: Mock, result: Any) -> None:
 
     lock_func = lock.nonblocking_lock_func
 
-    if result:
+    if result is True:
         assert await acquire_async(lock, block=False)
 
-    else:
+    elif result is None:
+        assert await acquire_async(lock, block=False)
+
+    elif result is False:
         assert not await acquire_async(lock, block=False)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
 @mark.asyncio
-@mark.parametrize("result", [True, False])
+@mark.parametrize("result", [None, True, False])
 @patch(f"{PATH}.text")
 async def test_acquire_async__block_true(text: Mock, result: Any) -> None:
     lock = Mock()
@@ -139,12 +144,13 @@ async def test_acquire_async__block_true(text: Mock, result: Any) -> None:
     if result is True:
         assert await acquire_async(lock, block=True)
 
+    elif result is None:
+        assert await acquire_async(lock, block=True)
+
     elif result is False:
         assert not await acquire_async(lock, block=True)
 
-    text.assert_called_with(
-        f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
-    )
+    text.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
     lock.conn.execute.assert_called_with(text())
 
 
