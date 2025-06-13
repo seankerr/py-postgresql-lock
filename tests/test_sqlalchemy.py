@@ -28,10 +28,10 @@ def test_acquire__defaults(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result is True:
+    if result:
         assert acquire(lock)
 
-    elif result is False:
+    else:
         assert not acquire(lock)
 
     text.assert_called_with(
@@ -49,10 +49,10 @@ def test_acquire__block_false(text: Mock, result: Any) -> None:
 
     lock_func = lock.nonblocking_lock_func
 
-    if result is True:
+    if result:
         assert acquire(lock, block=False)
 
-    elif result is False:
+    else:
         assert not acquire(lock, block=False)
 
     text.assert_called_with(
@@ -70,10 +70,10 @@ def test_acquire__block_true(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result is True:
+    if result:
         assert acquire(lock, block=True)
 
-    elif result is False:
+    else:
         assert not acquire(lock, block=True)
 
     text.assert_called_with(
@@ -92,10 +92,10 @@ async def test_acquire_async__defaults(text: Mock, result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result is True:
+    if result:
         assert await acquire_async(lock)
 
-    elif result is False:
+    else:
         assert not await acquire_async(lock)
 
     text.assert_called_with(
@@ -114,10 +114,10 @@ async def test_acquire_async__block_false(text: Mock, result: Any) -> None:
 
     lock_func = lock.nonblocking_lock_func
 
-    if result is True:
+    if result:
         assert await acquire_async(lock, block=False)
 
-    elif result is False:
+    else:
         assert not await acquire_async(lock, block=False)
 
     text.assert_called_with(

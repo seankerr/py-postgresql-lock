@@ -32,10 +32,10 @@ async def test_acquire_async__defaults(result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result is True:
+    if result:
         assert await acquire_async(lock)
 
-    elif result is False:
+    else:
         assert not await acquire_async(lock)
 
     lock.conn.fetchval.assert_called_with(
@@ -51,10 +51,10 @@ async def test_acquire_async__block_false(result: Any) -> None:
 
     lock_func = lock.nonblocking_lock_func
 
-    if result is True:
+    if result:
         assert await acquire_async(lock, block=False)
 
-    elif result is False:
+    else:
         assert not await acquire_async(lock, block=False)
 
     lock.conn.fetchval.assert_called_with(
@@ -70,10 +70,10 @@ async def test_acquire_async__block_true(result: Any) -> None:
 
     lock_func = lock.blocking_lock_func
 
-    if result is True:
+    if result:
         assert await acquire_async(lock, block=True)
 
-    elif result is False:
+    else:
         assert not await acquire_async(lock, block=True)
 
     lock.conn.fetchval.assert_called_with(
