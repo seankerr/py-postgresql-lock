@@ -12,23 +12,23 @@ pip install postgresql-lock
 
 ### Supported database interfaces
 
-- **asyncpg**
-  - asynchronous
-- **psycopg2**
-  - synchronous
-- **psycopg3**
-  - asynchronous
-  - synchronous
-- **sqlalchemy** (supports version 1 & 2; can use any underlying database interface)
-  - asynchronous
-  - synchronous
+-   **asyncpg**
+    -   asynchronous
+-   **psycopg2**
+    -   synchronous
+-   **psycopg3**
+    -   asynchronous
+    -   synchronous
+-   **sqlalchemy** (supports version 1 & 2; can use any underlying database interface)
+    -   asynchronous
+    -   synchronous
 
 ### Why would I use this?
 
-- PostgreSQL table locks aren't sufficient for your use-case
-- PostgreSQL row locks don't work on `INSERT`
-- You want to prevent race conditions between `INSERT` and `UPDATE` on the same primary key
-- None of the aforementioned details fit your use-case, but you have PostgreSQL installed and need to prevent race conditions in a distributed system
+-   PostgreSQL table locks aren't sufficient for your use-case
+-   PostgreSQL row locks don't work on `INSERT`
+-   You want to prevent race conditions between `INSERT` and `UPDATE` on the same primary key
+-   None of the aforementioned details fit your use-case, but you have PostgreSQL installed and need to prevent race conditions in a distributed system
 
 ### Default operation
 
@@ -175,24 +175,26 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
-- **0.1.9**
-  - Fix: release_async() bug for sqlalchemy connections
-- **0.1.8**
-  - Add logger() function
-  - Use "postgresql_lock" logger name
-- **0.1.7**
-  - Add logging statements
-- **0.1.6**
-  - Use int.from_bytes() to convert lock key into integer
-  - Fix: psycopg3 close() not being awaited bug
-- **0.1.5**
-  - Rename package from postgres-lock to postgresql-lock
-- **0.1.4**
-  - Add py.typed for mypy
-- **0.1.3**
-  - Key can be any object
-- **0.1.2**
-  - Add Lock.rollback_on_error (default true)
-  - Add Lock.handle_error() & Lock.handle_error_async()
-- **0.1.1**
-  - Key can be str or int
+-   **0.2.1**
+    -   Moved public Lock fields to properties
+-   **0.1.9**
+    -   Fix: release_async() bug for sqlalchemy connections
+-   **0.1.8**
+    -   Add logger() function
+    -   Use "postgresql_lock" logger name
+-   **0.1.7**
+    -   Add logging statements
+-   **0.1.6**
+    -   Use int.from_bytes() to convert lock key into integer
+    -   Fix: psycopg3 close() not being awaited bug
+-   **0.1.5**
+    -   Rename package from postgres-lock to postgresql-lock
+-   **0.1.4**
+    -   Add py.typed for mypy
+-   **0.1.3**
+    -   Key can be any object
+-   **0.1.2**
+    -   Add Lock.rollback_on_error (default true)
+    -   Add Lock.handle_error() & Lock.handle_error_async()
+-   **0.1.1**
+    -   Key can be str or int
