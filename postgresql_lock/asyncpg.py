@@ -37,11 +37,15 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     if not block:
         lock_func = lock.nonblocking_lock_func
 
-    lock_stmt = f"SELECT COALESCE(pg_catalog.{lock_func}({lock.lock_id}), true)"
+    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
 
     logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
 
-    return await lock.conn.fetchval(lock_stmt)
+    result = await lock.conn.fetchval(lock_stmt)
+
+    # lock function returns True/False in nonblocking mode, and always None in blocking
+    # mode
+    return False if result is False else True
 
 
 def handle_error(lock: Lock, exc: BaseException) -> None:

@@ -70,6 +70,16 @@ class Lock:
     _unlock_func: str
 
     @property
+    def blocking_lock_func(self) -> str:
+        """
+        Returns the blocking lock function name.
+
+        Returns:
+            str: Blocking lock function name.
+        """
+        return self._blocking_lock_func
+
+    @property
     def conn(self) -> Any:
         """
         Returns the database connection.
@@ -130,6 +140,16 @@ class Lock:
         return self._locked
 
     @property
+    def nonblocking_lock_func(self) -> str:
+        """
+        Returns the non-blocking lock function name.
+
+        Returns:
+            str: Non-blocking lock function name.
+        """
+        return self._nonblocking_lock_func
+
+    @property
     def ref_count(self) -> int:
         """
         Returns the reference count.
@@ -168,6 +188,16 @@ class Lock:
             bool: Shared status.
         """
         return self._shared
+
+    @property
+    def unlock_func(self) -> str:
+        """
+        Returns the unlock function name.
+
+        Returns:
+            str: Unlock function name.
+        """
+        return self._unlock_func
 
     def __init__(
         self,
