@@ -222,7 +222,6 @@ class Lock:
         """
         self._conn = conn
         self._interface = interface
-        self._impl = self._load_impl()
         self._key = key
         self._lock_id = int.from_bytes(
             hashlib.sha1(str(key).encode("utf-8")).digest()[:8],
@@ -230,8 +229,8 @@ class Lock:
             signed=True,
         )
         self._locked = False
-        self._rollback_on_error = rollback_on_error
         self._ref_count = 0
+        self._rollback_on_error = rollback_on_error
         self._scope = scope
         self._shared = shared
 
@@ -241,6 +240,8 @@ class Lock:
         self._blocking_lock_func = f"pg_advisory{infix}_lock{suffix}"
         self._nonblocking_lock_func = f"pg_try_advisory{infix}_lock{suffix}"
         self._unlock_func = f"pg_advisory_unlock{suffix}"
+
+        self._impl = self._load_impl()
 
     def acquire(self, block: bool = True) -> bool:
         """
