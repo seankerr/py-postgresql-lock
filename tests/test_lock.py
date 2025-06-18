@@ -115,6 +115,97 @@ def test___init___transaction_shared(_load_impl: Mock) -> None:
 
 
 @patch(f"{PATH}.Lock._load_impl")
+def test_property__blocking_lock_func(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.blocking_lock_func == lock._blocking_lock_func
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__conn(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.conn == lock._conn
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__impl(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.impl == lock._impl
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__interface(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.interface == lock._interface
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__key(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.key == lock._key
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__lock_id(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.lock_id == lock._lock_id
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__locked(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.locked == lock._locked
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__nonblocking_lock_func(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.nonblocking_lock_func == lock._nonblocking_lock_func
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__ref_count(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.ref_count == lock._ref_count
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__rollback_on_error(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.rollback_on_error == lock._rollback_on_error
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__scope(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.scope == lock._scope
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__shared(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.shared == lock._shared
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_property__unlock_func(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert lock.unlock_func == lock._unlock_func
+
+
+@patch(f"{PATH}.Lock._load_impl")
 def test_acquire__defaults(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
@@ -292,6 +383,26 @@ def test_locked(_load_impl: Mock) -> None:
 
 
 @patch(f"{PATH}.Lock._load_impl")
+def test_lock_query__false(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert (
+        lock.lock_query(False)
+        == f"SELECT pg_catalog.{lock.nonblocking_lock_func}({lock.lock_id})"
+    )
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_lock_query__true(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert (
+        lock.lock_query(True)
+        == f"SELECT pg_catalog.{lock.blocking_lock_func}({lock.lock_id})"
+    )
+
+
+@patch(f"{PATH}.Lock._load_impl")
 def test_ref_count(_load_impl: Mock) -> None:
     lock = Lock(None, "key")
 
@@ -380,6 +491,15 @@ async def test_release_async__not_released(_load_impl: Mock) -> None:
 def test_shared(_load_impl: Mock) -> None:
     assert not Lock(None, "key").shared
     assert Lock(None, "key", shared=True).shared
+
+
+@patch(f"{PATH}.Lock._load_impl")
+def test_unlock_query(_load_impl: Mock) -> None:
+    lock = Lock(None, "key")
+
+    assert (
+        lock.unlock_query() == f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+    )
 
 
 @patch(f"{PATH}.import_module")
