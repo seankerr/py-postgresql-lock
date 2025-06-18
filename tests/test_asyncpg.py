@@ -30,8 +30,6 @@ async def test_acquire_async__defaults(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
 
-    lock_func = lock.blocking_lock_func
-
     if result is True:
         assert await acquire_async(lock)
 
@@ -41,9 +39,8 @@ async def test_acquire_async__defaults(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock)
 
-    lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
-    )
+    lock.lock_query.assert_called_with(True)
+    lock.conn.fetchval.assert_called_with(lock.lock_query())
 
 
 @mark.asyncio
@@ -51,8 +48,6 @@ async def test_acquire_async__defaults(result: Any) -> None:
 async def test_acquire_async__block_false(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
-
-    lock_func = lock.nonblocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=False)
@@ -63,9 +58,8 @@ async def test_acquire_async__block_false(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock, block=False)
 
-    lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
-    )
+    lock.lock_query.assert_called_with(False)
+    lock.conn.fetchval.assert_called_with(lock.lock_query(False))
 
 
 @mark.asyncio
@@ -73,8 +67,6 @@ async def test_acquire_async__block_false(result: Any) -> None:
 async def test_acquire_async__block_true(result: Any) -> None:
     lock = Mock()
     lock.conn.fetchval = AsyncMock(return_value=result)
-
-    lock_func = lock.blocking_lock_func
 
     if result is True:
         assert await acquire_async(lock, block=True)
@@ -85,9 +77,8 @@ async def test_acquire_async__block_true(result: Any) -> None:
     elif result is False:
         assert not await acquire_async(lock, block=True)
 
-    lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
-    )
+    lock.lock_query.assert_called_with(True)
+    lock.conn.fetchval.assert_called_with(lock.lock_query())
 
 
 def test_handle_error() -> None:
@@ -126,6 +117,4 @@ async def test_release_async() -> None:
 
     assert lock.conn.fetchval.return_value == await release_async(lock)
 
-    lock.conn.fetchval.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
-    )
+    lock.conn.fetchval.assert_called_with(lock.unlock_query())

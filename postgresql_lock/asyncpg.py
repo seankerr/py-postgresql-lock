@@ -32,16 +32,11 @@ async def acquire_async(lock: Lock, block: bool = True) -> bool:
     Returns:
         bool: True, if the lock was acquired, otherwise False.
     """
-    lock_func = lock.blocking_lock_func
+    lock_query = lock.lock_query(block)
 
-    if not block:
-        lock_func = lock.nonblocking_lock_func
+    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_query)
 
-    lock_stmt = f"SELECT pg_catalog.{lock_func}({lock.lock_id})"
-
-    logger().debug("Acquire statement for key: %s, %s", lock.key, lock_stmt)
-
-    result = await lock.conn.fetchval(lock_stmt)
+    result = await lock.conn.fetchval(lock_query)
 
     # lock function returns True/False in nonblocking mode, and always None in blocking
     # mode
@@ -94,8 +89,8 @@ async def release_async(lock: Lock) -> bool:
     Returns:
         bool: True, if the lock was released, otherwise False.
     """
-    unlock_stmt = f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
+    unlock_query = lock.unlock_query()
 
-    logger().debug("Release statement for key: %s, %s", lock.key, unlock_stmt)
+    logger().debug("Release statement for key: %s, %s", lock.key, unlock_query)
 
-    return await lock.conn.fetchval(unlock_stmt)
+    return await lock.conn.fetchval(unlock_query)

@@ -309,6 +309,20 @@ class Lock:
         """
         return await self._impl.handle_error_async(self, exc)
 
+    def lock_query(self, block: bool) -> str:
+        """
+        Return the SQL query to acquire the lock.
+
+        Parameters:
+            block (bool): Return only once the lock has been acquired.
+
+        Returns:
+            str: SQL query.
+        """
+        lock_func = self._blocking_lock_func if block else self._nonblocking_lock_func
+
+        return f"SELECT pg_catalog.{lock_func}({self._lock_id})"
+
     def release(self) -> bool:
         """
         Release the lock.
@@ -372,6 +386,15 @@ class Lock:
         logger().debug("Release ref count for key: %s, %d", self._key, self._ref_count)
 
         return not self._locked
+
+    def unlock_query(self, block: bool = True) -> str:
+        """
+        Return the SQL query to release the lock.
+
+        Returns:
+            str: SQL query.
+        """
+        return f"SELECT pg_catalog.{self._unlock_func}({self._lock_id})"
 
     async def __aenter__(self) -> bool:
         """

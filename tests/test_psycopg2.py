@@ -23,8 +23,6 @@ def test_acquire__defaults(result: Any) -> None:
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
 
-    lock_func = lock.blocking_lock_func
-
     if result is True:
         assert acquire(lock)
 
@@ -34,7 +32,8 @@ def test_acquire__defaults(result: Any) -> None:
     elif result is False:
         assert not acquire(lock)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    lock.lock_query.assert_called_with(True)
+    cursor.execute.assert_called_with(lock.lock_query())
     cursor.close.assert_called_once()
 
 
@@ -45,8 +44,6 @@ def test_acquire__block_false(result: Any) -> None:
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
 
-    lock_func = lock.nonblocking_lock_func
-
     if result is True:
         assert acquire(lock, block=False)
 
@@ -56,7 +53,8 @@ def test_acquire__block_false(result: Any) -> None:
     elif result is False:
         assert not acquire(lock, block=False)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    lock.lock_query.assert_called_with(False)
+    cursor.execute.assert_called_with(lock.lock_query())
 
 
 @mark.parametrize("result", [None, True, False])
@@ -65,8 +63,6 @@ def test_acquire__block_true(result: Any) -> None:
     lock = Mock()
     lock.conn.cursor.return_value = cursor
     cursor.fetchone = Mock(return_value=[result])
-
-    lock_func = lock.blocking_lock_func
 
     if result is True:
         assert acquire(lock, block=True)
@@ -77,7 +73,8 @@ def test_acquire__block_true(result: Any) -> None:
     elif result is False:
         assert not acquire(lock, block=True)
 
-    cursor.execute.assert_called_with(f"SELECT pg_catalog.{lock_func}({lock.lock_id})")
+    lock.lock_query.assert_called_with(True)
+    cursor.execute.assert_called_with(lock.lock_query())
     cursor.close.assert_called_once()
 
 
@@ -121,9 +118,7 @@ def test_release(result: Any) -> None:
 
     assert result == release(lock)
 
-    cursor.execute.assert_called_with(
-        f"SELECT pg_catalog.{lock.unlock_func}({lock.lock_id})"
-    )
+    cursor.execute.assert_called_with(lock.unlock_query())
     cursor.close.assert_called_once()
 
 
