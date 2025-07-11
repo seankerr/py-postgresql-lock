@@ -330,8 +330,7 @@ class Lock:
         """
         Release the lock.
 
-        Transaction level locks cannot be manually released. Because of this,
-        transaction level Lock instances cannot be reused.
+        Transaction level locks do not need to be released manually.
 
         When using shared locks, all references to the lock within the current scope
         must be released before this method will return True.
@@ -373,8 +372,7 @@ class Lock:
         """
         Release the lock asynchronously.
 
-        Transaction level locks cannot be manually released. Because of this,
-        transaction level Lock instances cannot be reused.
+        Transaction level locks do not need to be released manually.
 
         When using shared locks, all references to the lock within the current scope
         must be released before this method will return True.
