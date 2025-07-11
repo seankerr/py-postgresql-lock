@@ -175,6 +175,8 @@ lock = Lock(conn, "shared-identifier", rollback_on_error=False)
 
 ### Changelog
 
+-   **0.2.2**
+    -   Fix: error raised when releasing transaction level locks
 -   **0.2.1**
     -   Moved public Lock fields to properties
 -   **0.1.9**

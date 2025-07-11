@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "postgresql-lock"
-version = "0.2.1"
+version = "0.2.2"
 description = "Lock mechanism implemented with PostgreSQL advisory locks."
 license = "BSD-3-Clause"
 authors = ["Sean Kerr <sean@code-box.org>"]
