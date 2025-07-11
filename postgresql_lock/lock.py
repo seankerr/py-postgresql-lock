@@ -31,6 +31,9 @@ class Lock:
     Default operation is session lock scope and blocking mode and is sufficient for
     distributed locks. The database interface will be detected automatically.
 
+    Transaction level locks cannot be manually released. Because of this,
+    transaction level Lock instances cannot be reused.
+
     Database interfaces:
         - asyncpg
             - asynchronous
@@ -327,6 +330,9 @@ class Lock:
         """
         Release the lock.
 
+        Transaction level locks cannot be manually released. Because of this,
+        transaction level Lock instances cannot be reused.
+
         When using shared locks, all references to the lock within the current scope
         must be released before this method will return True.
 
@@ -338,6 +344,14 @@ class Lock:
         """
         if not self._locked:
             logger().debug("Lock not held for key: %s", self._key)
+
+            return False
+
+        elif self._scope == "transaction":
+            logger().info(
+                "Transaction level lock will automatically be released by PostgreSQL for key: %s",
+                self._key,
+            )
 
             return False
 
@@ -359,6 +373,9 @@ class Lock:
         """
         Release the lock asynchronously.
 
+        Transaction level locks cannot be manually released. Because of this,
+        transaction level Lock instances cannot be reused.
+
         When using shared locks, all references to the lock within the current scope
         must be released before this method will return True.
 
@@ -370,6 +387,14 @@ class Lock:
         """
         if not self._locked:
             logger().debug("Lock not held for key: %s", self._key)
+
+            return False
+
+        elif self._scope == "transaction":
+            logger().info(
+                "Transaction level lock will automatically be released by PostgreSQL for key: %s",
+                self._key,
+            )
 
             return False
 
@@ -395,14 +420,6 @@ class Lock:
             str: SQL query.
         """
         return f"SELECT pg_catalog.{self._unlock_func}({self._lock_id})"
-
-    async def __aenter__(self) -> bool:
-        """
-        Enter the context manager.
-        """
-        logger().debug("Enter context manager for key: %s", self._key)
-
-        return await self._impl.acquire_async(self, block=True)
 
     def _load_impl(self) -> ModuleType:
         """
@@ -443,6 +460,14 @@ class Lock:
                 f"Unsupported database interface '{interface}'"
             )
 
+    async def __aenter__(self) -> bool:
+        """
+        Enter the context manager.
+        """
+        logger().debug("Enter context manager for key: %s", self._key)
+
+        return await self._impl.acquire_async(self, block=True)
+
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
@@ -462,7 +487,8 @@ class Lock:
         if exc:
             await self._impl.handle_error_async(self, exc)
 
-        await self._impl.release_async(self)
+        if self._scope != "transaction":
+            await self._impl.release_async(self)
 
         if exc:
             raise exc
@@ -494,7 +520,8 @@ class Lock:
         if exc:
             self._impl.handle_error(self, exc)
 
-        self._impl.release(self)
+        if self._scope != "transaction":
+            self._impl.release(self)
 
         if exc:
             raise exc
